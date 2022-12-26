@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+option java_package = "ca.wise.weather.proto";
+option csharp_namespace = "WISE.WeatherProto";
+option java_multiple_files = true;
+
+import "wcsData.proto";
+import "math.proto";
+import "wtime.proto";
+
+package WISE.WeatherProto;
+
+
+message WindGrid {
+    int32 version = 1;
+
+    GridType type = 2;
+    WISE.GridProto.wcsData defaultSectorData = 3;
+    repeated SectorData sectorData = 4;
+
+    HSS.Times.WTime startTime = 5;
+    HSS.Times.WTime endTime = 6;
+    HSS.Times.WTimeSpan startSpan = 7;
+    HSS.Times.WTimeSpan endSpan = 8;
+    oneof ApplyFile {
+        bool applyFileDefaults = 9;
+        bool applyFileSectors = 10;
+    }
+
+    optional string name = 11;      // not really optional but need to be able to suppress it in the old file format
+    optional string comments = 12;
+
+    enum GridType {
+        WindSpeed = 0;
+        WindDirection = 1;
+    }
+
+    message SectorData {
+        int32 version = 1;
+
+        string label = 2;
+        DirectionWrapper direction = 3;
+        repeated GridData sectorEntries = 4;
+
+        message GridData {
+            int32 version = 1;
+
+            Math.Double speed = 2;
+            WISE.GridProto.wcsData data = 3;
+        }
+
+        message DirectionWrapper {
+
+            oneof direction {
+                WindDirection cardinalDirection = 1;
+                SpecificDirection specifiedDirection = 2;
+            }
+
+            enum WindDirection {
+                East = 0;
+                North = 1;
+                Northeast = 2;
+                Northwest = 3;
+                South = 4;
+                Southeast = 5;
+                Southwest = 6;
+                West = 7;
+            }
+
+            message SpecificDirection {
+                Math.Double minAngle = 1;
+                Math.Double maxAngle = 2;
+            }
+        }
+    }
+}

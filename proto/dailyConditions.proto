@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+option java_package = "ca.wise.weather.proto";
+option csharp_namespace = "WISE.WeatherProto";
+option java_multiple_files = true;
+
+import "math.proto";
+import "google/protobuf/wrappers.proto";
+
+package WISE.WeatherProto;
+
+message DailyFwi {
+    int32 version = 1;
+
+    Math.Double ffmc = 2;
+    Math.Double isi = 3;
+    Math.Double fwi = 4;
+    Math.Double dmc = 5;
+    Math.Double dc = 6;
+    Math.Double bui = 7;
+}
+
+message DailyConditions {
+    int32 version = 1;
+    DailyFwi fwi = 2;
+    google.protobuf.BoolValue fromFile = 3;
+    oneof weather {
+        DayWeather dayWeather = 4;
+        DayHourWeather hourWeather = 5;
+    }
+    repeated SpecHour specHour = 6;
+    google.protobuf.BoolValue fromEnsemble = 7;
+    google.protobuf.BoolValue isModified = 8;
+
+    message DayWeather {
+        Math.Double maxTemp = 1;
+        Math.Double maxWs = 2;
+        Math.Double minTemp = 3;
+        Math.Double minWs = 4;
+        Math.Double precip = 5;
+        Math.Double rh = 6;
+        Math.Double wd = 7;
+    }
+
+    message DayHourWeather {
+        repeated HourWeather hours = 1;
+    }
+
+    message HourWeather {
+        Math.Double dewPoint = 1;
+        bool interpolated = 2;
+        Math.Double precip = 3;
+        Math.Double rh = 4;
+        Math.Double temp = 5;
+        Math.Double wd = 6;
+        Math.Double ws = 7;
+    }
+
+    message SpecHour {
+        Math.Double ffmc = 1;
+        Math.Double fwi = 2;
+        Math.Double isi = 3;
+    }
+}

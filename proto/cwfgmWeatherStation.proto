@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+option java_package = "ca.wise.weather.proto";
+option csharp_namespace = "WISE.WeatherProto";
+option java_multiple_files = true;
+
+import "math.proto";
+import "geography.proto";
+import "cwfgmWeatherStream.proto";
+import "google/protobuf/wrappers.proto";
+
+package WISE.WeatherProto;
+
+
+message CwfgmWeatherStation {
+    int32 version = 1;
+
+    Geography.GeoPoint location = 2;
+
+    Math.Double elevation = 3;
+    google.protobuf.BoolValue skipStream = 4;
+
+    repeated CwfgmWeatherStream streams = 5;
+
+    optional string name = 6;        // not really optional but need to be able to suppress it in the old file format
+    optional string comments = 7;
+    optional uint32 color = 8;
+    optional uint64 size = 9;
+    optional uint64 symbol = 10;
+}

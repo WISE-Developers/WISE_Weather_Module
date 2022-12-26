@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+option java_package = "ca.wise.weather.proto";
+option csharp_namespace = "WISE.WeatherProto";
+option java_multiple_files = true;
+
+import "math.proto";
+import "wtime.proto";
+import "dailyConditions.proto";
+import "google/protobuf/wrappers.proto";
+
+package WISE.WeatherProto;
+
+message WeatherStream {
+    int32 version = 1;
+
+    bool dataImportedFromFile = 2;
+    google.protobuf.Int32Value startHour = 3;
+    google.protobuf.Int32Value endHour = 4;
+    oneof data {
+        ConditionList dailyConditions = 5;
+        string filename = 6;
+    }
+    google.protobuf.BoolValue hffmcUseSpecified = 7;
+
+    HSS.Times.WTime startTime = 8;
+    HSS.Times.WTimeSpan hffmcTime = 9;
+    Math.Double hffmc = 10;
+    FFMCMethod hffmcMethod = 11;
+
+    ABC temperature = 12;
+    ABC wind = 13;
+
+    StartingCodes startingCodes = 14;
+    google.protobuf.BoolValue dataImportedFromEnsemble = 15;
+
+    enum FFMCMethod {
+        VAN_WAGNER = 0;
+        HYBRID = 1;
+        LAWSON = 2;
+    }
+
+    message ConditionList {
+        repeated DailyConditions dailyConditions = 1;
+    }
+
+    message ABC {
+        Math.Double alpha = 1;
+        Math.Double beta = 2;
+        Math.Double gamma = 3;
+    }
+
+    message StartingCodes {
+        Math.Double ffmc = 1;
+        Math.Double dmc = 2;
+        Math.Double dc = 3;
+        Math.Double bui = 4;
+        Math.Double precipitation = 5;
+    }
+}

@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option java_package = "ca.wise.weather.proto";
+option csharp_namespace = "WISE.WeatherProto";
+option java_multiple_files = true;
+
+import "weatherStream.proto";
+import "google/protobuf/wrappers.proto";
+
+package WISE.WeatherProto;
+
+
+message CwfgmWeatherStream {
+    int32 version = 1;
+    
+    google.protobuf.StringValue name = 2;
+    google.protobuf.StringValue comments = 3;
+
+    WeatherStream condition = 4;
+}
