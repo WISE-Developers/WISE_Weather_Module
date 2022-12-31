@@ -1,0 +1,9 @@
+/x64
+/dlldata.c
+/WeatherCom.idl.ts
+/WeatherCom.tlb
+/WeatherCom_i.c
+/WeatherCom_p.c
+/Debug
+/Release
+*.bak
