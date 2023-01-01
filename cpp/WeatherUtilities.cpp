@@ -21,7 +21,6 @@
 #include "propsysreplacement.h"
 #include "points.h"
 #include "FireEngine_ext.h"
-#include "prom_vers.h"
 #include <stdio.h>
 
 
