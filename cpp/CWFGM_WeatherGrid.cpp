@@ -1551,41 +1551,6 @@ HRESULT CCWFGM_WeatherGrid::fixResolution() {
 		VariantToDouble_(var, &gridXLL);
 		if (FAILED(hr = gridEngine->GetAttribute(nullptr, CWFGM_GRID_ATTRIBUTE_YLLCORNER, &var))) return hr;
 		VariantToDouble_(var, &gridYLL);
-		if (FAILED(hr = gridEngine->GetAttribute(nullptr, CWFGM_GRID_ATTRIBUTE_LATITUDE, &var)))		return hr;
-		VariantToDouble_(var, &temp); m_worldLocation.m_latitude(temp);
-		if (FAILED(hr = gridEngine->GetAttribute(nullptr, CWFGM_GRID_ATTRIBUTE_LONGITUDE, &var)))		return hr;
-		VariantToDouble_(var, &temp); m_worldLocation.m_longitude(temp);
-
-		bool foundTimezone = false;
-		if (SUCCEEDED(hr = gridEngine->GetAttribute(0, CWFGM_GRID_ATTRIBUTE_TIMEZONE_ID, &var)))
-		{
-			std::uint32_t timezone;
-    		if (SUCCEEDED(hr = VariantToUInt32_(var, &timezone)))
-    		{
-    			if (timezone > 0)
-    			{
-    				m_worldLocation.SetTimeZoneOffset(timezone);
-    				foundTimezone = true;
-    			}
-    		}
-    	}
-
-		if (!foundTimezone)
-		{
-		    HSS_Time::WTimeSpan time;
-			if (FAILED(hr = gridEngine->GetAttribute(nullptr, CWFGM_GRID_ATTRIBUTE_TIMEZONE, &var)))		return hr;
-			if (FAILED(hr = VariantToTimeSpan_(var, &time)))									return hr;
-			m_worldLocation.m_timezone(time);
-			if (FAILED(hr = gridEngine->GetAttribute(nullptr, CWFGM_GRID_ATTRIBUTE_DAYLIGHT_SAVINGS, &var)))return hr;
-			if (FAILED(hr = VariantToTimeSpan_(var, &time)))									return hr;
-			m_worldLocation.m_amtDST(time);
-			if (FAILED(hr = gridEngine->GetAttribute(nullptr, CWFGM_GRID_ATTRIBUTE_DST_START, &var)))		return hr;
-			if (FAILED(hr = VariantToTimeSpan_(var, &time)))									return hr;
-			m_worldLocation.m_startDST(time);
-			if (FAILED(hr = gridEngine->GetAttribute(nullptr, CWFGM_GRID_ATTRIBUTE_DST_END, &var)))			return hr;
-			if (FAILED(hr = VariantToTimeSpan_(var, &time)))									return hr;
-			m_worldLocation.m_endDST(time);
-		}
 	}
 	catch (std::bad_variant_access&) {
 		weak_assert(0);

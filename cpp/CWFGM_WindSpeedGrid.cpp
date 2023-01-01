@@ -43,7 +43,7 @@ CCWFGM_WindSpeedGrid::CCWFGM_WindSpeedGrid() : m_timeManager(nullptr),
 }
 
 
-CCWFGM_WindSpeedGrid::CCWFGM_WindSpeedGrid(const CCWFGM_WindSpeedGrid &toCopy) : m_timeManager(toCopy.m_worldLocation),
+CCWFGM_WindSpeedGrid::CCWFGM_WindSpeedGrid(const CCWFGM_WindSpeedGrid &toCopy) : m_timeManager(toCopy.m_timeManager),
 	m_lStartTime((std::uint64_t)0, m_timeManager),
 	m_lEndTime((std::uint64_t)0, m_timeManager),
 	m_startSpan((std::int64_t)0),
