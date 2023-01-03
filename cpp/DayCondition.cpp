@@ -203,21 +203,21 @@ void DailyCondition::calculateHourlyFFMC() {
 			}
 
 			if (calculate) {
-				double temp, rh, precip, ws, wd, dew;
+				double temp, rh, precip, ws, gust, wd, dew;
 				switch (m_weatherCondition->m_options & WeatherCondition::FFMC_MASK) {
 					case WeatherCondition::FFMC_HYBRID:			// so we have to default to Lawson
 					case WeatherCondition::FFMC_LAWSON:		{	double prev_ffmc;
 								bool spec;
 								m_weatherCondition->DailyFFMC(m_DayStart , &prev_ffmc, &spec);
 
-								hourlyWeather(loop, &temp, &rh, &precip, &ws, &wd, &dew);
+								hourlyWeather(loop, &temp, &rh, &precip, &ws, &gust, &wd, &dew);
 								m_weatherCondition->m_fwi->HourlyFFMC_Lawson_Contiguous(prev_ffmc,//((DailyCondition *)getYesterday())->dailyFFMC(),
 								    m_calc_day.dFFMC, precip, temp, rh, rh, rh, ws, (std::uint32_t)(loop - dayLST)./*(std::uint32_t)loop.GetTimeOfDay(WTIME_FORMAT_AS_LOCAL).*/GetTotalSeconds(), &val);
 
 								break;
 							}
 					default :	in_ffmc = m_calc_hr[(std::uint16_t)(i + 1)].FFMC;
-								hourlyWeather(loop + WTimeSpan(0, 1, 0, 0), &temp, &rh, &precip, &ws, &wd, &dew);
+								hourlyWeather(loop + WTimeSpan(0, 1, 0, 0), &temp, &rh, &precip, &ws, &gust, &wd, &dew);
 								m_weatherCondition->m_fwi->HourlyFFMC_VanWagner_Previous(in_ffmc, precip, temp, rh, ws, &val);
 
 								break;
@@ -252,8 +252,8 @@ void DailyCondition::calculateHourlyFFMC() {
 		}
 
 		if (calculate) {
-			double temp, rh, precip, ws, wd, dew;
-			hourlyWeather(loop, &temp, &rh, &precip, &ws, &wd, &dew);
+			double temp, rh, precip, ws, gust, wd, dew;
+			hourlyWeather(loop, &temp, &rh, &precip, &ws, &gust, &wd, &dew);
 
 			switch (m_weatherCondition->m_options & WeatherCondition::FFMC_MASK) {
 				case WeatherCondition::FFMC_HYBRID:		{
@@ -411,6 +411,10 @@ WISE::WeatherProto::DailyConditions* DailyCondition::serialize(const SerializePr
 		day->set_allocated_maxtemp(DoubleBuilder().withValue(dailyMaxTemp()).forProtobuf(options.useVerboseFloats()));
 		day->set_allocated_minws(DoubleBuilder().withValue(dailyMinWS()).forProtobuf(options.useVerboseFloats()));
 		day->set_allocated_maxws(DoubleBuilder().withValue(dailyMaxWS()).forProtobuf(options.useVerboseFloats()));
+		if (m_flags & DAY_GUST_SPECIFIED) {
+			day->set_allocated_mingust(DoubleBuilder().withValue(dailyMinWS()).forProtobuf(options.useVerboseFloats()));
+			day->set_allocated_maxgust(DoubleBuilder().withValue(dailyMaxWS()).forProtobuf(options.useVerboseFloats()));
+		}
 		day->set_allocated_rh(DoubleBuilder().withValue(dailyMeanRH() * 100.0).forProtobuf(options.useVerboseFloats()));
 		day->set_allocated_precip(DoubleBuilder().withValue(dailyPrecip()).forProtobuf(options.useVerboseFloats()));
 		day->set_allocated_wd(DoubleBuilder().withValue(ROUND_DECIMAL(CARTESIAN_TO_COMPASS_DEGREE(RADIAN_TO_DEGREE(dailyWD())), 6)).forProtobuf(options.useVerboseFloats()));
@@ -441,12 +445,14 @@ WISE::WeatherProto::DailyConditions* DailyCondition::serialize(const SerializePr
 		{
 			auto hour = dayHourly->add_hours();
 
-			double temp, rh, precip, ws, wd, dew;
-			hourlyWeather_Serialize(i, &temp, &rh, &precip, &ws, &wd, &dew);
+			double temp, rh, precip, ws, gust, wd, dew;
+			hourlyWeather_Serialize(i, &temp, &rh, &precip, &ws, &gust, &wd, &dew);
 
 			hour->set_allocated_temp(DoubleBuilder().withValue(temp).forProtobuf(options.useVerboseFloats()));
 			hour->set_allocated_rh(DoubleBuilder().withValue(rh * 100.0).forProtobuf(options.useVerboseFloats()));
 			hour->set_allocated_ws(DoubleBuilder().withValue(ws).forProtobuf(options.useVerboseFloats()));
+			if ((m_hflags[i] & HOUR_GUST_SPECIFIED) && (gust >= 0.0))
+				hour->set_allocated_gust(DoubleBuilder().withValue(gust).forProtobuf(options.useVerboseFloats()));
 			hour->set_allocated_precip(DoubleBuilder().withValue(precip).forProtobuf(options.useVerboseFloats()));
 			hour->set_allocated_wd(DoubleBuilder().withValue(ROUND_DECIMAL(CARTESIAN_TO_COMPASS_DEGREE(RADIAN_TO_DEGREE(wd)), 6)).forProtobuf(options.useVerboseFloats()));
 			if ((m_hflags[i] & HOUR_DEWPT_SPECIFIED))
@@ -532,7 +538,7 @@ DailyCondition* DailyCondition::deserialize(const google::protobuf::Message& pro
 		m_flags = m_flags & ~DAY_HOURLY_SPECIFIED;
 		auto day = conditions->dayweather();
 
-		double minTemp, maxTemp, minWs, maxWs, rh, precip, wd;
+		double minTemp, maxTemp, minWs, maxWs, minGust, maxGust, rh, precip, wd;
 
 		if (day.has_mintemp()) {
 			minTemp = DoubleBuilder().withProtobuf(day.mintemp(), myValid2, "minTemp").getValue();
@@ -649,6 +655,63 @@ DailyCondition* DailyCondition::deserialize(const google::protobuf::Message& pro
 			}
 		}
 
+		if (day.has_mingust()) {
+			minGust = DoubleBuilder().withProtobuf(day.mingust(), myValid2, "minGust").getValue();
+			if ((minGust < 0.0) || (minGust > 200.0)) {
+				if (myValid2)
+					/// <summary>
+					/// The minimum wind speed is out of range of acceptable values.
+					/// </summary>
+					/// <type>user</type>
+					myValid2->add_child_validation("Math.Double", "minGust", (minGust > 200.0) ? validation::error_level::INFORMATION : validation::error_level::WARNING, validation::id::value_invalid, std::to_string(minGust), { true, 0.0 }, { true, 200.0 });
+				if (minGust < 0.0)
+					minGust = 0.0;
+				else if (minGust > 200.0)
+					minGust = 200.0;
+			}
+		}
+		else {
+			minGust = -1.0;
+			if (myValid2)
+				/// <summary>
+				/// The minimum wind speed is not found.
+				/// </summary>
+				/// <type>user</type>
+				myValid2->add_child_validation("Math.Double", "minGust", validation::error_level::INFORMATION, validation::id::missing_daily_weather_data, "minGust");
+		}
+
+		if (day.has_maxgust()) {
+			maxGust = DoubleBuilder().withProtobuf(day.maxgust(), myValid2, "maxGust").getValue();
+			if ((maxGust < 0.0) || (maxGust > 200.0)) {
+				if (myValid2)
+					/// <summary>
+					/// The maximum wind speed is out of range of acceptable values.
+					/// </summary>
+					/// <type>user</type>
+					myValid2->add_child_validation("Math.Double", "maxGust", (maxGust > 200.0) ? validation::error_level::INFORMATION : validation::error_level::WARNING, validation::id::value_invalid, std::to_string(maxGust), { true, 0.0 }, { true, 200.0 });
+				if (maxGust < 0.0)
+					maxGust = 0.0;
+				else if (maxGust > 200.0)
+					maxGust = 200.0;
+			}
+		}
+		else {
+			maxGust = -1.0;
+			if (myValid2)
+				/// <summary>
+				/// The maximum wind speed is not found.
+				/// </summary>
+				/// <type>user</type>
+				myValid2->add_child_validation("Math.Double", "maxGust", validation::error_level::INFORMATION, validation::id::missing_daily_weather_data, "maxGust");
+		}
+
+		if (minGust > maxGust) {
+			std::swap(minGust, maxGust);
+			if (myValid) {
+				myValid->add_child_validation("Math.Double", { "minGust", "maxGust" }, validation::error_level::INFORMATION, validation::id::value_invalid, { std::to_string(minGust), std::to_string(maxGust) }, "C");
+			}
+		}
+
 		if (day.has_rh()) {
 			rh = DoubleBuilder().withProtobuf(day.rh(), myValid2, "rh").getValue() * 0.01;
 			if ((rh < 0.0) || (rh > 100.0)) {
@@ -726,7 +789,7 @@ DailyCondition* DailyCondition::deserialize(const google::protobuf::Message& pro
 				throw std::invalid_argument("Error: WISE.WeatherProto.DailyConditions.DayWeather: Missing wd value");
 		}
 
-		setDailyWeather(minTemp, maxTemp, minWs, maxWs, rh, precip, wd);
+		setDailyWeather(minTemp, maxTemp, minWs, maxWs, minGust, maxGust, rh, precip, wd);
 
 		if (conditions->has_fwi())
 		{
@@ -852,7 +915,7 @@ DailyCondition* DailyCondition::deserialize(const google::protobuf::Message& pro
 
 			auto hour = conditions->hourweather().hours(i - start);
 
-			double temp, rh, precip, ws, wd, dew;
+			double temp, rh, precip, ws, gust, wd, dew;
 
 			if (hour.has_temp()) {
 				temp = DoubleBuilder().withProtobuf(hour.temp(), hourValid, "temp").getValue();
@@ -918,6 +981,24 @@ DailyCondition* DailyCondition::deserialize(const google::protobuf::Message& pro
 				}
 			}
 
+			if (hour.has_gust()) {
+				gust = DoubleBuilder().withProtobuf(hour.gust(), hourValid, "gust").getValue();
+				if ((gust < 0.0) || (gust > 200.0)) {
+					if (hourValid)
+						/// <summary>
+						/// The minimum wind speed is out of range of acceptable values.
+						/// </summary>
+						/// <type>user</type>
+						hourValid->add_child_validation("Math.Double", "gust", (gust > 200.0) ? validation::error_level::INFORMATION : validation::error_level::WARNING, validation::id::value_invalid, std::to_string(ws), { true, 0.0 }, { true, 200.0 });
+					if (gust < 0.0)
+						gust = 0.0;
+					else if (gust > 200.0)
+						gust = 200.0;
+				}
+			}
+			else
+				gust = -1.0;		// this states that no gust was applied
+
 			if (hour.has_wd()) {
 				wd = COMPASS_TO_CARTESIAN_RADIAN(DEGREE_TO_RADIAN(DoubleBuilder().withProtobuf(hour.wd(), hourValid, "wd").getValue()));
 				if ((wd < 0.0) || (wd > 360.0)) {
@@ -937,15 +1018,13 @@ DailyCondition* DailyCondition::deserialize(const google::protobuf::Message& pro
 			if (hour.has_dewpoint())
 			{
 				dew = DoubleBuilder().withProtobuf(hour.dewpoint(), hourValid, "dewPoint").getValue();
-				m_hflags[i] |= HOUR_DEWPT_SPECIFIED;
 			}
 			else
 			{
 				dew = -400.0;
-				m_hflags[i] &= ~HOUR_DEWPT_SPECIFIED;
 			}
 
-			setHourlyWeather(i, temp, rh, precip, ws, wd, dew);
+			setHourlyWeather(i, temp, rh, precip, ws, gust, wd, dew);
 			if (hour.interpolated())
 				setHourInterpolated(i);
 

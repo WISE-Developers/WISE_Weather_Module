@@ -37,7 +37,9 @@ import java.util.Arrays;
 public class DailyWeather extends LinkedListNode {
 	public static final int DAY_HOURLY_SPECIFIED = 0x1;
 	public static final  int DAY_ORIGIN_FILE	  = 0x2;
+	public static final int DAY_ORIGIN_ENSEMBLE   = 0x4;
 	public static final  int HOUR_DEWPT_SPECIFIED = 0x4;
+	public static final int HOUR_GUST_SPECIFIED = 0x2;
 
 	public WeatherCondition m_weatherCondition;
 	public long m_flags;
@@ -50,6 +52,7 @@ public class DailyWeather extends LinkedListNode {
 	private double[] m_hourly_dewpt_temp = new double[24];
 	private double[] m_hourly_rh = new double[24];
 	private double[] m_hourly_ws = new double[24];
+	private double[] m_hourly_wg = new double[24];
 	private double[] m_hourly_precip = new double[24];
 	
 	private double[] m_hourly_wd = new double[24];
@@ -59,6 +62,8 @@ public class DailyWeather extends LinkedListNode {
 				   m_daily_max_temp,
 				   m_daily_min_ws,
 				   m_daily_max_ws,
+				   m_daily_min_wg,
+				   m_daily_max_wg,
 				   m_daily_rh,
 				   m_daily_precip;
 	private double m_daily_wd,
@@ -106,11 +111,11 @@ public class DailyWeather extends LinkedListNode {
 		m_weatherCondition = cond;
 
 		m_flags = 0;
-		m_daily_min_temp = m_daily_max_temp = m_daily_min_ws = m_daily_max_ws = m_daily_rh = m_daily_precip = 0.0;
+		m_daily_min_temp = m_daily_max_temp = m_daily_min_ws = m_daily_max_ws = m_daily_min_wg = m_daily_max_wg = m_daily_rh = m_daily_precip = 0.0;
 		m_daily_wd = 0.0;
 
 		for (short i = 0; i < 24; i++) {
-			m_hourly_temp[i] = m_hourly_dewpt_temp[i] = m_hourly_rh[i] = m_hourly_ws[i] = m_hourly_precip[i] = 0.0;
+			m_hourly_temp[i] = m_hourly_dewpt_temp[i] = m_hourly_rh[i] = m_hourly_ws[i] = m_hourly_wg[i] = m_hourly_precip[i] = 0.0;
 			m_hourly_wd[i] = 0.0;
 			m_hflags[i] = 0;
 		}
@@ -153,6 +158,7 @@ public class DailyWeather extends LinkedListNode {
 				lastTemp = 1;
 			calculateRH();
 			int lastWS = calculateWS();
+			int lastGust = calculateGust();
 			//FIXME added range checking
 			if (lastWS < 1 || lastTemp > m_hourly_ws.length)
 				lastWS = 1;
@@ -165,6 +171,9 @@ public class DailyWeather extends LinkedListNode {
 				}
 				for (i = lastWS; i < 24; i++)
 					m_hourly_ws[i] = m_hourly_ws[lastWS - 1];
+				if (lastGust != -1)
+					for (i = lastWS; i < 24; i++)
+						m_hourly_wg[i] = m_hourly_wg[lastGust - 1];
 			}
 		}
 		return true;
@@ -180,6 +189,8 @@ public class DailyWeather extends LinkedListNode {
 			m_daily_max_temp = getDailyMaxTemp();
 			m_daily_min_ws = getDailyMinWS();
 			m_daily_max_ws = getDailyMaxWS();
+			m_daily_min_wg = getDailyMinWS();
+			m_daily_max_wg = getDailyMaxWS();
 			m_daily_rh = getDailyMinRH();
 			m_daily_precip = getDailyPrecip();
 			m_daily_wd = getDailyWD();
@@ -198,14 +209,18 @@ public class DailyWeather extends LinkedListNode {
 	 * @throws IllegalArgumentException Thrown if any of the OutVariables are null.
 	 */
 	public void hourlyWeather(WTime time, OutVariable<Double> temp, OutVariable<Double> rh, OutVariable<Double> precip,
-			OutVariable<Double> ws, OutVariable<Double> wd, OutVariable<Double> dew) throws IllegalArgumentException {
-		if (temp == null || rh == null || precip == null || ws == null || wd == null || dew == null)
+			OutVariable<Double> ws, OutVariable<Double> wg, OutVariable<Double> wd, OutVariable<Double> dew) throws IllegalArgumentException {
+		if (temp == null || rh == null || precip == null || ws == null || wg == null || wd == null || dew == null)
 			throw new IllegalArgumentException();
 		int hour = (int)time.getHour(FORMAT_AS_LOCAL | FORMAT_WITHDST);
 		temp.value = m_hourly_temp[hour];
 		rh.value = m_hourly_rh[hour];
 		precip.value = m_hourly_precip[hour];
 		ws.value = m_hourly_ws[hour];
+		if ((m_hflags[hour] & HOUR_GUST_SPECIFIED) != 0)
+			wg.value = m_hourly_wg[hour];
+		else
+			wg.value = -1.0;
 		wd.value = m_hourly_wd[hour];
 		dew.value = m_hourly_dewpt_temp[hour];
 	}
@@ -214,6 +229,7 @@ public class DailyWeather extends LinkedListNode {
 	public double getHourlyDewPtTemp(WTime time) { return m_hourly_dewpt_temp[(int)time.getHour(FORMAT_AS_LOCAL | FORMAT_WITHDST)]; }
 	public double getHourlyRH(WTime time) { return m_hourly_rh[(int)time.getHour(FORMAT_AS_LOCAL | FORMAT_WITHDST)]; }
 	public double getHourlyWS(WTime time) { return m_hourly_ws[(int)time.getHour(FORMAT_AS_LOCAL | FORMAT_WITHDST)]; }
+	public double getHourlyWG(WTime time) { return m_hourly_wg[(int)time.getHour(FORMAT_AS_LOCAL | FORMAT_WITHDST)]; }
 	public double getHourlyWD(WTime time) { return m_hourly_wd[(int)time.getHour(FORMAT_AS_LOCAL | FORMAT_WITHDST)]; }
 	public double getHourlyPrecip(WTime time) { return m_hourly_precip[(int)time.getHour(FORMAT_AS_LOCAL | FORMAT_WITHDST)]; }
 	public boolean isHourInterpolated(WTime time) { return !m_hourly_spec[(int)time.getHour(FORMAT_AS_LOCAL | FORMAT_WITHDST)]; }
@@ -260,7 +276,7 @@ public class DailyWeather extends LinkedListNode {
         return false;
     }
 	
-	public boolean setHourlyWeather(WTime time, double temp, double rh, double precip, double ws, double wd, double dew) {
+	public boolean setHourlyWeather(WTime time, double temp, double rh, double precip, double ws, double wg, double wd, double dew) {
 		if ((m_flags & DAY_HOURLY_SPECIFIED) == 0)
 			return false;
 		int hour = (int)time.getHour(FORMAT_AS_LOCAL | FORMAT_WITHDST);
@@ -270,9 +286,22 @@ public class DailyWeather extends LinkedListNode {
 		m_hourly_precip[hour] = precip;
 		
 		m_hourly_ws[hour] = ws;
+
+		if (wg >= 0.0) {
+			m_hourly_wg[hour] = (float)wg;
+			m_hflags[hour] |= HOUR_GUST_SPECIFIED;
+		} else
+			m_hflags[hour] &= (~(HOUR_GUST_SPECIFIED));
+
 		m_hourly_wd[hour] = wd;
-		if (dew > -300)
+
+		if (dew > -300) {
 			m_hourly_dewpt_temp[hour] = dew;
+			m_hflags[hour] |= HOUR_DEWPT_SPECIFIED;
+		}
+		else
+			m_hflags[hour] &= (~(HOUR_DEWPT_SPECIFIED));
+
 		return true;
 	}
 
@@ -331,6 +360,30 @@ public class DailyWeather extends LinkedListNode {
 		for (i++; i <= j; i++)
 			if (t < m_hourly_ws[i])
 				t = m_hourly_ws[i];
+		return t;
+	}
+
+	public double getDailyMinGust() {
+		if ((m_flags & DAY_HOURLY_SPECIFIED) == 0)
+			return m_daily_min_wg;
+		int i = m_weatherCondition.firstHourOfDay(m_dayStart);
+		int j = m_weatherCondition.lastHourOfDay(m_dayStart);
+		double t = m_hourly_wg[i];
+		for (i++; i <= j; i++)
+			if (t > m_hourly_wg[i])
+				t = m_hourly_wg[i];
+		return t;
+	}
+
+	public double getDailyMaxGust() {
+		if ((m_flags & DAY_HOURLY_SPECIFIED) == 0)
+			return m_daily_max_wg;
+		int i = m_weatherCondition.firstHourOfDay(m_dayStart);
+		int j = m_weatherCondition.lastHourOfDay(m_dayStart);
+		double t = m_hourly_wg[i];
+		for (i++; i <= j; i++)
+			if (t < m_hourly_wg[i])
+				t = m_hourly_wg[i];
 		return t;
 	}
 
@@ -423,7 +476,7 @@ public class DailyWeather extends LinkedListNode {
 		return m_hourly_wd[th];
 	}
 
-	public void getDailyWeather(OutVariable<Double> min_temp, OutVariable<Double> max_temp, OutVariable<Double> min_ws, OutVariable<Double> max_ws,
+	public void getDailyWeather(OutVariable<Double> min_temp, OutVariable<Double> max_temp, OutVariable<Double> min_ws, OutVariable<Double> max_ws, OutVariable<Double> min_wg, OutVariable<Double> max_wg,
 								OutVariable<Double> rh, OutVariable<Double> precip, OutVariable<Double> wd) throws IllegalArgumentException {
 		if (min_temp == null || max_temp == null || min_ws == null || max_ws == null || rh == null || precip == null || wd == null)
 			throw new IllegalArgumentException();
@@ -431,18 +484,22 @@ public class DailyWeather extends LinkedListNode {
 		max_temp.value = getDailyMaxTemp();
 		min_ws.value = getDailyMinWS();
 		max_ws.value = getDailyMaxWS();
+		min_wg.value = getDailyMinGust();
+		max_wg.value = getDailyMaxGust();
 		rh.value = getDailyMinRH();
 		precip.value = getDailyPrecip();
 		wd.value = getDailyWD();
 	}
 
-	public boolean setDailyWeather(double min_temp, double max_temp, double min_ws, double max_ws, double rh, double precip, double wd) {
+	public boolean setDailyWeather(double min_temp, double max_temp, double min_ws, double max_ws, double min_wg, double max_wg, double rh, double precip, double wd) {
 		if ((m_flags & DAY_HOURLY_SPECIFIED) != 0)
 			return false;
 		m_daily_min_temp = min_temp;
 		m_daily_max_temp = max_temp;
 		m_daily_min_ws = min_ws;
 		m_daily_max_ws = max_ws;
+		m_daily_min_wg = min_wg;
+		m_daily_max_wg = max_wg;
 		m_daily_rh = rh;
 		m_daily_precip = precip;
 		m_daily_wd = wd;
@@ -638,6 +695,99 @@ public class DailyWeather extends LinkedListNode {
 			if(tempValue<0)
 				tempValue=0;
 			m_hourly_ws[i++] = (float)tempValue;
+		}
+
+	    return i;
+	}
+
+	private int calculateGust() {
+		DailyWeather yesterday = getYesterday();
+
+		m_calc_gamma = m_weatherCondition.m_wind_gamma;
+		m_calc_min = m_daily_min_wg;
+		m_calc_max = m_daily_max_wg;
+
+        m_calc_tn = add(m_SunRise, new WTimeSpan((long)(m_weatherCondition.m_wind_alpha * 60.0 * 60.0)));
+        m_calc_tx = add(m_SolarNoon, new WTimeSpan((long)(m_weatherCondition.m_wind_beta * 60.0 * 60.0)));
+
+		if (yesterday != null) {
+			m_calc_ts = new WTime(yesterday.m_Sunset);
+			m_calc_tx = add(yesterday.m_SolarNoon, new WTimeSpan((long)(m_weatherCondition.m_wind_beta * 60.0 * 60.0)));
+
+			if ((yesterday.m_flags & DAY_HOURLY_SPECIFIED) == 0)
+				m_calc_sunset = yesterday.m_hourly_wg[(int)m_calc_tx.getHour(FORMAT_AS_LOCAL | FORMAT_WITHDST)] +
+	                            (yesterday.m_hourly_wg[(int)m_calc_tx.getHour(FORMAT_AS_LOCAL | FORMAT_WITHDST)+1] -
+	                        		   yesterday.m_hourly_wg[(int)m_calc_tx.getHour(FORMAT_AS_LOCAL | FORMAT_WITHDST)])
+	                            *(m_calc_tx.getMinute(FORMAT_AS_LOCAL | FORMAT_WITHDST)/60.0);
+			else
+				m_calc_sunset = yesterday.m_daily_max_wg;
+
+	        if ((yesterday.m_flags & DAY_HOURLY_SPECIFIED) == 0)
+	        {
+				int i;
+				WTime daily_time = new WTime(0L, m_weatherCondition.m_time.getTimeManager());
+
+				if ((yesterday.m_flags & DAY_HOURLY_SPECIFIED) != 0)
+					m_calc_sunset = yesterday.m_hourly_wg[(int)m_calc_tx.getHour(FORMAT_AS_LOCAL | FORMAT_WITHDST)] +
+								    (yesterday.m_hourly_wg[(int)m_calc_tx.getHour(FORMAT_AS_LOCAL | FORMAT_WITHDST) + 1] -
+										   yesterday.m_hourly_temp[(int)m_calc_tx.getHour(FORMAT_AS_LOCAL | FORMAT_WITHDST)])
+								    *((double)m_calc_tx.getMinute(FORMAT_AS_LOCAL | FORMAT_WITHDST) / 60.0);
+				else
+					m_calc_sunset = yesterday.m_hourly_wg[(int)m_calc_tx.getHour(FORMAT_AS_LOCAL | FORMAT_WITHDST)];
+
+				daily_time = add(m_calc_tx, new WTimeSpan(0,1,-m_calc_tx.getMinute(FORMAT_AS_LOCAL | FORMAT_WITHDST),
+						-m_calc_tx.getSecond(FORMAT_AS_LOCAL | FORMAT_WITHDST)));
+				//FIXME added i < 24
+			    for(i = (int)m_calc_tx.getHour(FORMAT_AS_LOCAL | FORMAT_WITHDST) + 1;
+				    lessThan(daily_time, m_dayStart) && i < 24;
+				    daily_time.add(WTimeSpan.Hour), i++
+			       )
+			    {
+					double tempValue = exp_WindFunc(daily_time);
+					if(tempValue < 0)
+						tempValue = 0;
+					yesterday.m_hourly_wg[i] = tempValue;
+			    }
+	        }
+	    }
+	    else
+	    {
+	    	OutVariable<WTime> SunRise = new OutVariable<WTime>();
+	    	OutVariable<WTime> SunSet = new OutVariable<WTime>();
+	    	OutVariable<WTime> SolarNoon = new OutVariable<WTime>();
+			WTime t = new WTime(m_dayStart);
+			SunRise.value = new WTime(m_dayStart);
+			SunSet.value = new WTime(m_dayStart);
+			SolarNoon.value = new WTime(m_dayStart);
+			t.subtract(new WTimeSpan(0, 12, 0, 0));
+			int success = m_weatherCondition.m_worldLocation.getSunRiseSetNoon(t, SunRise, SunSet, SolarNoon);
+			if ((success & ca.hss.times.SunriseSunsetCalc.NO_SUNSET) != 0)
+				m_calc_ts = WTime.subtract(m_Sunset, new WTimeSpan(1, 0, 0, 0));
+			else
+				m_calc_ts = new WTime(SunSet.value);
+			m_calc_tx = WTime.add(SolarNoon.value, new WTimeSpan((long)(m_weatherCondition.m_wind_beta * 60.0 * 60.0)));
+			m_calc_sunset = m_daily_max_wg;
+	    }
+
+		WTime daily_time;
+		int i;
+		for(i = 0, daily_time = new WTime(m_dayStart); lessThan(daily_time, m_calc_tn); daily_time.add(WTimeSpan.Hour))
+		{
+			double tempValue = exp_WindFunc(daily_time);
+			if(tempValue < 0)
+				tempValue = 0;
+			m_hourly_wg[i++] = tempValue;
+		}
+
+	    m_calc_tx = add(m_SolarNoon, new WTimeSpan((long)(m_weatherCondition.m_wind_beta * 60.0 * 60.0)));
+
+		for( ; lessThanEqualTo(daily_time, m_calc_tx); daily_time.add(new WTimeSpan(0,1,0,0)))
+		{
+			double tempValue;
+			tempValue=sin_function(daily_time);
+			if(tempValue<0)
+				tempValue=0;
+			m_hourly_wg[i++] = (float)tempValue;
 		}
 
 	    return i;

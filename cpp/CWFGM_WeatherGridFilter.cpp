@@ -341,6 +341,8 @@ HRESULT CCWFGM_WeatherGridFilter::getWeatherData(ICWFGM_GridEngine *gridEngine, 
 					wx->SpecifiedBits |= IWXDATA_OVERRODEHISTORY_WINDDIRECTION;
 				if (m_poly_ws_op != (std::uint16_t)-1)
 					wx->SpecifiedBits |= IWXDATA_OVERRODEHISTORY_WINDSPEED;
+				if (m_poly_ws_op != (std::uint16_t)-1)
+					wx->SpecifiedBits |= IWXDATA_OVERRODEHISTORY_WINDGUST;
 			}
 		}
 	}
@@ -765,6 +767,17 @@ bool CCWFGM_WeatherGridFilter::GetWeatherInfoInPoly(const XY_Point &pt, IWXData 
 			case 4:		if (m_poly_ws_val == 0.0) { wx->WindSpeed = 0.0;	wx->SpecifiedBits |= IWXDATA_SPECIFIED_WINDSPEED | IWXDATA_OVERRODE_WINDSPEED; }
 					else	{ wx->WindSpeed /= fabs(m_poly_ws_val);		wx->SpecifiedBits &= (~(IWXDATA_SPECIFIED_WINDSPEED)); wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDSPEED;	}
 					break;
+		}
+
+		switch ((m_poly_ws_op) && (wx->SpecifiedBits & IWXDATA_SPECIFIED_WINDGUST)) {
+			case (std::uint16_t)-1:break;
+			case 0:		wx->WindGust = m_poly_ws_val;							wx->SpecifiedBits |= IWXDATA_SPECIFIED_WINDGUST | IWXDATA_OVERRODE_WINDGUST;								break;
+			case 1:		wx->WindGust += m_poly_ws_val;							wx->SpecifiedBits &= (~(IWXDATA_SPECIFIED_WINDGUST)); wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDGUST;		break;
+			case 2:		wx->WindGust -= m_poly_ws_val; 							wx->SpecifiedBits &= (~(IWXDATA_SPECIFIED_WINDGUST)); wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDGUST;		break;
+			case 3:		wx->WindGust *= fabs(m_poly_ws_val);					wx->SpecifiedBits &= (~(IWXDATA_SPECIFIED_WINDGUST)); wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDGUST;		break;
+			case 4:		if (m_poly_ws_val == 0.0) { wx->WindGust = 0.0;			wx->SpecifiedBits |= IWXDATA_SPECIFIED_WINDGUST | IWXDATA_OVERRODE_WINDGUST; }
+				  else { wx->WindGust /= fabs(m_poly_ws_val);					wx->SpecifiedBits &= (~(IWXDATA_SPECIFIED_WINDGUST)); wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDGUST; }
+				  break;
 		}
 
 		switch (m_poly_wd_op) {

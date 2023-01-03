@@ -176,24 +176,26 @@ public class WeatherCondition {
         return false;
     }
 
-	public boolean getDailyWeatherValues(WTime time, OutVariable<Double> min_temp, OutVariable<Double> max_temp, OutVariable<Double> min_ws, OutVariable<Double> max_ws,
+	public boolean getDailyWeatherValues(WTime time, OutVariable<Double> min_temp, OutVariable<Double> max_temp, OutVariable<Double> min_ws, OutVariable<Double> max_ws, OutVariable<Double> min_wg, OutVariable<Double> max_wg,
 			OutVariable<Double> rh, OutVariable<Double> precip, OutVariable<Double> wd) {
 		assert min_temp != null;
 		assert max_temp != null;
 		assert min_ws != null;
 		assert max_ws != null;
+		assert min_wg != null;
+		assert max_wg != null;
 		assert rh != null;
 		assert precip != null;
 		assert wd != null;
 		DailyCondition dc = getDCReading(time, false);
 		if (dc != null) {
 			calculateValues();
-			dc.getDailyWeather(min_temp, max_temp, min_ws, max_ws, rh, precip, wd);
+			dc.getDailyWeather(min_temp, max_temp, min_ws, max_ws, min_wg, max_wg, rh, precip, wd);
 		}
 		return (dc != null);
 	}
 
-	public boolean setDailyWeatherValues(WTime time, double min_temp, double max_temp, double min_ws, double max_ws, double rh, double precip, double wd) {
+	public boolean setDailyWeatherValues(WTime time, double min_temp, double max_temp, double min_ws, double max_ws, double min_wg, double max_wg, double rh, double precip, double wd) {
 		DailyCondition dc = getDCReading(time, true);
 		if (dc != null) {
 			if ((dc.m_flags & DailyWeather.DAY_HOURLY_SPECIFIED) != 0)
@@ -203,6 +205,8 @@ public class WeatherCondition {
 			OutVariable<Double> max_temp2 = new OutVariable<>();
 			OutVariable<Double> min_ws2 = new OutVariable<>();
 			OutVariable<Double> max_ws2 = new OutVariable<>();
+			OutVariable<Double> min_wg2 = new OutVariable<>();
+			OutVariable<Double> max_wg2 = new OutVariable<>();
 			OutVariable<Double> min_rh2 = new OutVariable<>();
 			OutVariable<Double> precip2 = new OutVariable<>();
 			OutVariable<Double> wd2 = new OutVariable<>();
@@ -210,17 +214,21 @@ public class WeatherCondition {
 			OutVariable<Double> max_temp3 = new OutVariable<>();
 			OutVariable<Double> min_ws3 = new OutVariable<>();
 			OutVariable<Double> max_ws3 = new OutVariable<>();
+			OutVariable<Double> min_wg3 = new OutVariable<>();
+			OutVariable<Double> max_wg3 = new OutVariable<>();
 			OutVariable<Double> min_rh3 = new OutVariable<>();
 			OutVariable<Double> precip3 = new OutVariable<>();
 			OutVariable<Double> wd3 = new OutVariable<>();
-			dc.getDailyWeather(min_temp2, max_temp2, min_ws2, max_ws2, min_rh2, precip2, wd2);
-			dc.setDailyWeather(min_temp, max_temp, min_ws, max_ws, rh, precip, wd);
-			dc.getDailyWeather(min_temp3, max_temp3, min_ws3, max_ws3, min_rh3, precip3, wd3);
+			dc.getDailyWeather(min_temp2, max_temp2, min_ws2, max_ws2, min_wg2, max_wg2, min_rh2, precip2, wd2);
+			dc.setDailyWeather(min_temp, max_temp, min_ws, max_ws, min_wg, max_wg, rh, precip, wd);
+			dc.getDailyWeather(min_temp3, max_temp3, min_ws3, max_ws3, min_wg2, max_wg2, min_rh3, precip3, wd3);
 			//if any of the weather values have been modified clear any loaded FWI values 
 			if (abs(min_temp2.value - min_temp3.value) >= 1e-5 ||
 				abs(max_temp2.value - max_temp3.value) >= 1e-5 ||
 				abs(min_ws2.value - min_ws3.value) >= 1e-5 ||
 				abs(max_ws2.value - max_ws3.value) >= 1e-5 ||
+				abs(min_wg2.value - min_wg3.value) >= 1e-5 ||
+				abs(max_wg2.value - max_wg3.value) >= 1e-5 ||
 				abs(min_rh2.value - min_rh3.value) >= 1e-5 ||
 				abs(precip2.value - precip3.value) >= 1e-5 ||
 				abs(wd2.value - wd3.value) >= 1e-5)
@@ -237,7 +245,7 @@ public class WeatherCondition {
 		return 0.0;
 	}
 
-	public boolean setHourlyWeatherValues(WTime time, double temp, double rh, double precip, double ws, double wd, double dew) {
+	public boolean setHourlyWeatherValues(WTime time, double temp, double rh, double precip, double ws, double gust, double wd, double dew) {
 		DailyCondition dc = getDCReading(time, true);
 		if (dc != null) {
 			if ((dc.m_flags & DailyWeather.DAY_HOURLY_SPECIFIED) == 0)
@@ -255,21 +263,24 @@ public class WeatherCondition {
 			OutVariable<Double> rh2 = new OutVariable<>();
 			OutVariable<Double> precip2 = new OutVariable<>();
 			OutVariable<Double> ws2 = new OutVariable<>();
+			OutVariable<Double> wg2 = new OutVariable<>();
 			OutVariable<Double> wd2 = new OutVariable<>();
 			OutVariable<Double> dew2 = new OutVariable<>();
 			OutVariable<Double> temp3 = new OutVariable<>();
 			OutVariable<Double> rh3 = new OutVariable<>();
 			OutVariable<Double> precip3 = new OutVariable<>();
 			OutVariable<Double> ws3 = new OutVariable<>();
+			OutVariable<Double> wg3 = new OutVariable<>();
 			OutVariable<Double> wd3 = new OutVariable<>();
 			OutVariable<Double> dew3 = new OutVariable<>();
-			dc.hourlyWeather(time, temp2, rh2, precip2, ws2, wd2, dew2);
-			dc.setHourlyWeather(time, temp, rh, precip, ws, wd, dew);
-			dc.hourlyWeather(time, temp3, rh3, precip3, ws3, wd3, dew3);
+			dc.hourlyWeather(time, temp2, rh2, precip2, ws2, wg2, wd2, dew2);
+			dc.setHourlyWeather(time, temp, rh, precip, ws, gust, wd, dew);
+			dc.hourlyWeather(time, temp3, rh3, precip3, ws3, wg3, wd3, dew3);
 			if (abs(temp2.value - temp3.value) >= 1e-5 ||
 				abs(rh2.value - rh3.value) >= 1e-5 ||
 				abs(precip2.value - precip3.value) >= 1e-5 ||
 				abs(ws2.value - ws3.value) >= 1e-5 ||
+				abs(wg2.value - wg3.value) >= 1e-5 ||
 				abs(wd2.value - wd3.value) >= 1e-5 ||
 				abs(dew2.value - dew3.value) >= 1e-5)
 				m_options = m_options & (~0x0000004);
@@ -447,6 +458,7 @@ public class WeatherCondition {
 		OutVariable<Double> d2 = new OutVariable<Double>();
 		OutVariable<Double> d3 = new OutVariable<Double>();
 		OutVariable<Double> d4 = new OutVariable<Double>();
+		OutVariable<Double> d7 = new OutVariable<Double>();
 		OutVariable<Double> d5 = new OutVariable<Double>();
 		OutVariable<Double> d6 = new OutVariable<Double>();
 		OutVariable<Boolean> b1 = new OutVariable<Boolean>();
@@ -457,17 +469,20 @@ public class WeatherCondition {
 		if ((dc1 == null) || (dc2 == null) || (WTime.equal(nt2, time)) || ((method & GETWEATHER_INTERPOLATE.TEMPORAL)) == 0) {
 			if (dc1 != null) {
 				if (wx.value != null) {
-					dc1.hourlyWeather(time, d1, d2, d3, d4, d5, d6);
+					dc1.hourlyWeather(time, d1, d2, d3, d4, d7, d5, d6);
 					wx.value.temperature = d1.value;
 					wx.value.rh = d2.value;
 					wx.value.precipitation = d3.value;
 					wx.value.windSpeed = d4.value;
+					wx.value.windGust = d7.value;
 					wx.value.windDirection = d5.value;
 					wx.value.dewPointTemperature = d6.value;
 					if ((method & GETWEATHER_INTERPOLATE.TEMPORAL) != 0)
 						if ((dc2 == null) && (nt1 != time))
 							wx.value.precipitation = 0.0;
 					wx.value.specifiedBits = IWXData.SPECIFIED.TEMPERATURE | IWXData.SPECIFIED.RH | IWXData.SPECIFIED.PRECIPITATION | IWXData.SPECIFIED.WINDSPEED | IWXData.SPECIFIED.WINDDIRECTION;
+					if (wx.value.windGust >= 0.0)
+						wx.value.specifiedBits |= IWXData.SPECIFIED.WINDGUST;
 					if (dc1.isInterpolated(time))
 						wx.value.specifiedBits |= IWXData.SPECIFIED.INTERPOLATED;
 					if (dc1.isCorrected(time))
@@ -523,19 +538,21 @@ public class WeatherCondition {
 			rh1 = rh2 = wx.value.rh;
 		}
 		else {
-			double t1, ws1, wd1, dew1;
-			double t2, p2, ws2, wd2, dew2;
-			dc1.hourlyWeather(nt1, d1, d2, d3, d4, d5, d6);
+			double t1, ws1, gust1, wd1, dew1;
+			double t2, p2, ws2, gust2, wd2, dew2;
+			dc1.hourlyWeather(nt1, d1, d2, d3, d4, d7, d5, d6);
 			t1 = d1.value;
 			rh1 = d2.value;
 			ws1 = d4.value;
+			gust1 = d7.value;
 			wd1 = d5.value;
 			dew1 = d6.value;
-			dc2.hourlyWeather(nt2, d1, d2, d3, d4, d5, d6);
+			dc2.hourlyWeather(nt2, d1, d2, d3, d4, d7, d5, d6);
 			t2 = d1.value;
 			rh2 = d2.value;
 			p2 = d3.value;
 			ws2 = d4.value;
+			gust2 = d7.value;
 			wd2 = d5.value;
 			dew2 = d6.value;
 			perc2 = ((double)(time.getTime((short)0) - nt1.getTime((short)0))) / 3600.0;
@@ -888,6 +905,7 @@ public class WeatherCondition {
 		public double rh;
 		public double wd;
 		public double ws;
+		public double wg;
 		public double precip;
 		public double ffmc;
 		public double DMC;
@@ -904,13 +922,14 @@ public class WeatherCondition {
 			rh = 0;
 			wd = 0;
 			ws = 0;
+			wg = -1.0;
 			precip = 0;
-			ffmc = -1;
-			DMC = -1;
-			DC = -1;
-			BUI = -1;
-			ISI = -1;
-			FWI = -1;
+			ffmc = -1.0;
+			DMC = -1.0;
+			DC = -1.0;
+			BUI = -1.0;
+			ISI = -1.0;
+			FWI = -1.0;
 			options = 0;
 		}
 
@@ -929,6 +948,7 @@ public class WeatherCondition {
 		public void fix() {
 		    wd = constrainToRange(wd, 0.0, 360.0);
 		    ws = constrainToRange(ws, 0.0, Double.MAX_VALUE);
+			wg = constrainToRange(wg, 0.0, Double.MAX_VALUE);
 		    rh = constrainToRange(rh, 0.0, 100.0);
 		    precip = constrainToRange(precip, 0.0, Double.MAX_VALUE);
 		    temp = constrainToRange(temp, -50.0, 60.0);
@@ -1005,6 +1025,8 @@ public class WeatherCondition {
 					temp.value = 0.0;
 					OutVariable<Double> ws = new OutVariable<Double>();
 					ws.value = 0.0;
+					OutVariable<Double> wg = new OutVariable<Double>();
+					wg.value = -1.0;
 					OutVariable<Double> ffmc = new OutVariable<Double>();
 					ffmc.value = -1.0;
 					OutVariable<Double> DMC = new OutVariable<Double>();
@@ -1017,11 +1039,12 @@ public class WeatherCondition {
 					ISI.value = -1.0;
 					OutVariable<Double> FWI = new OutVariable<Double>();
 					FWI.value = -1.0;
-					file_type = fillLineValues(header, line, hour, min, sec, temp, rh, wd, ws, precip, ffmc, DMC, DC, BUI, ISI, FWI);
+					file_type = fillLineValues(header, line, hour, min, sec, temp, rh, wd, ws, wg, precip, ffmc, DMC, DC, BUI, ISI, FWI);
 					coll.temp = temp.value;
 					coll.rh = rh.value;
 					coll.wd = wd.value;
 					coll.ws = ws.value;
+					coll.wg = wg.value;
 					coll.precip = precip.value;
 					coll.ffmc = ffmc.value;
 					coll.DMC = DMC.value;
@@ -1129,6 +1152,7 @@ public class WeatherCondition {
 									HourValue[] temps = new HourValue[retval.size()];
 									HourValue[] rhs = new HourValue[retval.size()];
 									HourValue[] wss = new HourValue[retval.size()];
+									HourValue[] wgs = new HourValue[retval.size()];
 									for (int i = 0; i < retval.size(); i++) {
 										temps[i] = new HourValue();
 										temps[i].houroffset = retval.get(i).hour;
@@ -1139,11 +1163,15 @@ public class WeatherCondition {
 										wss[i] = new HourValue();
 										wss[i].houroffset = retval.get(i).hour;
 										wss[i].value = retval.get(i).ws;
+										wgs[i] = new HourValue();
+										wgs[i].houroffset = retval.get(i).hour;
+										wgs[i].value = retval.get(i).wg;
 									}
 									Interpolator inter = new Interpolator();
 									HourValue[] newtemps = inter.splineInterpolate(temps);
 									HourValue[] newrhs = inter.splineInterpolate(rhs);
 									HourValue[] newwss = inter.splineInterpolate(wss);
+									HourValue[] newwgs = inter.splineInterpolate(wgs);
 									
 									//get rid of unneeded times
 									for (int i = retval.size() - 1; i >= 0; i--) {
@@ -1171,6 +1199,7 @@ public class WeatherCondition {
 										coll.precip = 0;
 										coll.rh = newrhs[index].value;
 										coll.ws = newwss[index].value;
+										coll.wg = newwgs[index].value;
 										coll.wd = retval.get(index - 1).wd;
 										coll.DMC = -1;
 										coll.DC = -1;
@@ -1288,6 +1317,10 @@ public class WeatherCondition {
 						min_ws .value =  -100.0;
 						OutVariable<Double> max_ws = new OutVariable<Double>();
 						max_ws.value = -100.0;
+						OutVariable<Double> min_wg = new OutVariable<Double>();
+						min_wg .value =  -100.0;
+						OutVariable<Double> max_wg = new OutVariable<Double>();
+						max_wg.value = -100.0;
 						OutVariable<Double> rh = new OutVariable<Double>();
 						rh.value = -100.0;
 						OutVariable<Double> precip = new OutVariable<Double>();
@@ -1295,7 +1328,7 @@ public class WeatherCondition {
 						OutVariable<Double> wd = new OutVariable<Double>();
 						wd.value = -100.0;
 	
-						file_type = fillDailyLineValue(header, line, min_temp, max_temp, rh, precip, min_ws, max_ws, wd);
+						file_type = fillDailyLineValue(header, line, min_temp, max_temp, rh, precip, min_ws, max_ws, min_wg, max_wg, wd);
 	
 						if ((wd.value < 0.0) || (wd.value > 360.0) ||
 						    (min_ws.value < 0.0) || (max_ws.value < 0.0) ||
@@ -1360,8 +1393,14 @@ public class WeatherCondition {
 							min_ws.value = max_ws.value;
 							max_ws.value = ttt;
 						}
+						if (min_wg.value > max_wg.value)
+						{
+							double ttt = min_wg.value;
+							min_wg.value = max_wg.value;
+							max_wg.value = ttt;
+						}
 	
-						dc.setDailyWeather(min_temp.value, max_temp.value, min_ws.value, max_ws.value, rh.value, precip.value, wd.value);
+						dc.setDailyWeather(min_temp.value, max_temp.value, min_ws.value, max_ws.value, min_wg.value, max_wg.value, rh.value, precip.value, wd.value);
 						lines++;
 					}
 				}
@@ -1482,7 +1521,7 @@ public class WeatherCondition {
 							}
 		
 							m_lastHour = hour.value;
-							dc.setHourlyWeather(t, w.temp, w.rh, w.precip, w.ws, w.wd, -300.0);
+							dc.setHourlyWeather(t, w.temp, w.rh, w.precip, w.ws, w.wg, w.wd, -300.0);
 							lines++;
 						}
 		
@@ -1583,7 +1622,7 @@ public class WeatherCondition {
 		if ((dc.m_flags & DailyWeather.DAY_HOURLY_SPECIFIED) == 0) {
 			fakeLast = new DailyCondition(this);
 			m_readings.addLast(fakeLast);
-			fakeLast.setDailyWeather(dc.getDailyMinTemp(), dc.getDailyMaxTemp(), dc.getDailyMinWS(), dc.getDailyMaxWS(), dc.getDailyMeanRH(), dc.getDailyPrecip(), dc.getDailyWD());
+			fakeLast.setDailyWeather(dc.getDailyMinTemp(), dc.getDailyMaxTemp(), dc.getDailyMinWS(), dc.getDailyMaxWS(), dc.getDailyMinGust(), dc.getDailyMaxGust(), dc.getDailyMeanRH(), dc.getDailyPrecip(), dc.getDailyWD());
 		}
 		dc = m_readings.getFirst();
 
@@ -1619,11 +1658,13 @@ public class WeatherCondition {
 	}
 
 	private void distributeDailyValue(List<String> header, int index, double value, OutVariable<Double> min_temp, OutVariable<Double> max_temp,
-			OutVariable<Double> rh, OutVariable<Double> precip, OutVariable<Double> min_ws, OutVariable<Double> max_ws, OutVariable<Double> wd) {
+			OutVariable<Double> rh, OutVariable<Double> precip, OutVariable<Double> min_ws, OutVariable<Double> max_ws, OutVariable<Double> min_wg, OutVariable<Double> max_wg, OutVariable<Double> wd) {
 		assert min_temp != null;
 		assert max_temp != null;
 		assert min_ws != null;
 		assert max_ws != null;
+		assert min_wg != null;
+		assert max_wg != null;
 		assert rh != null;
 		assert precip != null;
 		assert wd != null;
@@ -1642,18 +1683,23 @@ public class WeatherCondition {
 			min_ws.value = value;
 		else if (str.compareToIgnoreCase("max_ws") == 0)
 			max_ws.value = value;
+		else if (str.compareToIgnoreCase("min_wg") == 0)
+			min_wg.value = value;
+		else if (str.compareToIgnoreCase("max_wg") == 0)
+			max_wg.value = value;
 		else if ((str.compareToIgnoreCase("precip") == 0) || (str.compareToIgnoreCase("rain") == 0) || str.compareToIgnoreCase("precipitation") == 0)
 			precip.value = value;
 	}
 
 	private void distributeValue(List<String> header, int index, double value, OutVariable<Integer> hour,
 			OutVariable<Integer> minute, OutVariable<Integer> second,
-			OutVariable<Double> temp, OutVariable<Double> rh, OutVariable<Double> wd, OutVariable<Double> ws,
+			OutVariable<Double> temp, OutVariable<Double> rh, OutVariable<Double> wd, OutVariable<Double> ws, OutVariable<Double> wg,
 			OutVariable<Double> precip, OutVariable<Double> ffmc, OutVariable<Double> dmc, OutVariable<Double> dc,
 			OutVariable<Double> bui, OutVariable<Double> isi, OutVariable<Double> fwi) {
 		assert hour != null;
 		assert temp != null;
 		assert ws != null;
+		assert wg != null;
 		assert precip != null;
 		assert rh != null;
 		assert wd != null;
@@ -1676,6 +1722,8 @@ public class WeatherCondition {
 			wd.value = value;
 		else if (str.compareToIgnoreCase("ws") == 0 || str.compareToIgnoreCase("wspd") == 0 || str.compareToIgnoreCase("wind_speed") == 0 || str.compareToIgnoreCase("windspeed") == 0)
 			ws.value = value;
+		else if (str.compareToIgnoreCase("wg") == 0 || str.compareToIgnoreCase("gust") == 0 || str.compareToIgnoreCase("gusting") == 0 || str.compareToIgnoreCase("wind_gust") == 0 || str.compareToIgnoreCase("windgust") == 0)
+			wg.value = value;
 		else if ((str.compareToIgnoreCase("precip") == 0) || (str.compareToIgnoreCase("rain") == 0) || str.compareToIgnoreCase("precipitation") == 0 || str.compareToIgnoreCase("prec") == 0)
 			precip.value = value;
 		else if ((str.compareToIgnoreCase("ffmc") == 0) || (str.compareToIgnoreCase("hffmc") == 0))
@@ -1693,11 +1741,13 @@ public class WeatherCondition {
 	}
 
 	private String fillDailyLineValue(List<String> header, String line, OutVariable<Double> min_temp, OutVariable<Double> max_temp,
-			OutVariable<Double> rh, OutVariable<Double> precip, OutVariable<Double> min_ws, OutVariable<Double> max_ws, OutVariable<Double> wd) {
+			OutVariable<Double> rh, OutVariable<Double> precip, OutVariable<Double> min_ws, OutVariable<Double> max_ws, OutVariable<Double> min_wg, OutVariable<Double> max_wg, OutVariable<Double> wd) {
 		assert min_temp != null;
 		assert max_temp != null;
 		assert min_ws != null;
 		assert max_ws != null;
+		assert min_wg != null;
+		assert max_wg != null;
 		assert rh != null;
 		assert precip != null;
 		assert wd != null;
@@ -1716,7 +1766,7 @@ public class WeatherCondition {
 			dat = dat.replaceAll("[\"\']+", "");
 			
 			double ReadIn = Double.parseDouble(dat);
-			distributeDailyValue(header, ++i, ReadIn, min_temp, max_temp, rh, precip, min_ws, max_ws, wd);
+			distributeDailyValue(header, ++i, ReadIn, min_temp, max_temp, rh, precip, min_ws, max_ws, min_wg, max_wg, wd);
 		}
 		return retVal;
 	}
@@ -1736,12 +1786,13 @@ public class WeatherCondition {
 	}
 
 	private String fillLineValues(List<String> header, String line, OutVariable<Integer> hour, OutVariable<Integer> minute, OutVariable<Integer> second,
-			OutVariable<Double> temp, OutVariable<Double> rh, OutVariable<Double> wd, OutVariable<Double> ws,
+			OutVariable<Double> temp, OutVariable<Double> rh, OutVariable<Double> wd, OutVariable<Double> ws, OutVariable<Double> wg,
 			OutVariable<Double> precip, OutVariable<Double> ffmc, OutVariable<Double> dmc, OutVariable<Double> dc, 
 			OutVariable<Double> bui, OutVariable<Double> isi, OutVariable<Double> fwi) {
 		assert hour != null;
 		assert temp != null;
 		assert ws != null;
+		assert wg != null;
 		assert precip != null;
 		assert rh != null;
 		assert precip != null;
@@ -1776,7 +1827,7 @@ public class WeatherCondition {
 					break;
 			}
 			double ReadIn = Double.parseDouble(dat);
-			distributeValue(header, ++i, ReadIn, hour, minute, second, temp, rh, wd, ws, precip, ffmc, dmc, dc, bui, isi, fwi);
+			distributeValue(header, ++i, ReadIn, hour, minute, second, temp, rh, wd, ws, wg, precip, ffmc, dmc, dc, bui, isi, fwi);
 		}
 		return retVal;
 	}
@@ -1830,12 +1881,14 @@ public class WeatherCondition {
 		OutVariable<Double> max_temp = new OutVariable<Double>();
 		OutVariable<Double> min_ws = new OutVariable<Double>();
 		OutVariable<Double> max_ws = new OutVariable<Double>();
+		OutVariable<Double> min_wg = new OutVariable<Double>();
+		OutVariable<Double> max_wg = new OutVariable<Double>();
 		OutVariable<Double> rh = new OutVariable<Double>();
 		OutVariable<Double> precip = new OutVariable<Double>();
 		OutVariable<Double> wd = new OutVariable<Double>();
-		getDailyWeatherValues(source, min_temp, max_temp, min_ws, max_ws, rh, precip, wd);
+		getDailyWeatherValues(source, min_temp, max_temp, min_ws, max_ws, min_wg, max_wg, rh, precip, wd);
 
-		setDailyWeatherValues(dest, min_temp.value, max_temp.value, min_ws.value, max_ws.value, rh.value, precip.value, wd.value);
+		setDailyWeatherValues(dest, min_temp.value, max_temp.value, min_ws.value, max_ws.value, min_wg.value, max_wg.value, rh.value, precip.value, wd.value);
 	}
 
 	private void decreaseConditions(WTime currentEndTime, long days) {

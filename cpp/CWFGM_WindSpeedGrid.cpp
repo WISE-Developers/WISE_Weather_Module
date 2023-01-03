@@ -764,12 +764,11 @@ HRESULT CCWFGM_WindSpeedGrid::getWeatherData(ICWFGM_GridEngine *gridEngine, Laye
 		if (hr != E_NOTIMPL)
 			return hr;
 
-	const WTime t(time, m_timeManager);
 	if ((wx) && (!(interpolate_method & CWFGM_GETEVENTTIME_QUERY_PRIMARY_WX_STREAM))) {
 		if (((!m_lStartTime.GetTotalMicroSeconds()) && (!m_lEndTime.GetTotalMicroSeconds())) ||
-			((t >= m_lStartTime) && (t <= m_lEndTime)))
+			((time >= m_lStartTime) && (time <= m_lEndTime)))
 		{										// if we are in the valid times for this filter, then let's see if the filter changes any data.
-			WTimeSpan tod = t.GetTimeOfDay(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST);
+			WTimeSpan tod = time.GetTimeOfDay(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST);
 			std::uint16_t x = convertX(pt.x, bbox_cache);
 			std::uint16_t y = convertY(pt.y, bbox_cache);
 			if ((tod >= m_startSpan) && (tod <= m_endSpan)) {
@@ -788,82 +787,111 @@ HRESULT CCWFGM_WindSpeedGrid::getWeatherData(ICWFGM_GridEngine *gridEngine, Laye
 					std::uint16_t count = (std::uint16_t)m_sectors.size();
 					for (std::uint16_t i = 0; i < count; i++) {
 						if (m_sectors[i]->ContainsAngle(direction)) {
-							std::uint16_t index;
-							if (m_sectors[i]->m_entries.size() == 0) {
-							} else if (m_sectors[i]->m_entries.size() == 1) {
-								index = 0;
-								goto LOOKUP;
-							} else if ((index = m_sectors[i]->GetSpeedIndex(m_wx.WindSpeed)) == (std::uint16_t)-1) {
-								std::uint16_t lower = m_sectors[i]->GetLowerSpeedIndex(m_wx.WindSpeed);
-								std::uint16_t higher = m_sectors[i]->GetHigherSpeedIndex(m_wx.WindSpeed);
-								if ((lower == (std::uint16_t)-1) && (higher != (std::uint16_t)-1)) {
-									index = higher;
-									goto LOOKUP;
-								} else if ((lower != (std::uint16_t)-1) && (higher == (std::uint16_t)-1)) {
-									index = lower;
-									goto LOOKUP;
-								} else {
-									weak_assert(lower != (std::uint16_t)-1);
-									weak_assert(higher != (std::uint16_t)-1);
-									double ws1, ws2;
-
-									std::uint16_t *data = m_sectors[i]->m_entries[lower].m_data;
-									bool *valid = m_sectors[i]->m_entries[lower].m_datavalid;
-									if (valid[this->ArrayIndex(x, y)])
-										ws1 = (((double)data[this->ArrayIndex(x, y)]) / 10.0);
-									else	ws1 = -1.0;
-
-									data = m_sectors[i]->m_entries[higher].m_data;
-									valid = m_sectors[i]->m_entries[higher].m_datavalid;
-									if (valid[this->ArrayIndex(x, y)])
-										ws2 = (((double)data[this->ArrayIndex(x, y)]) / 10.0);
-									else	ws2 = -1.0;
-								
-									if ((ws1 == -1.0) && (ws2 != -1.0)) {
-										index = higher;
-										goto LOOKUP;
-									} else if ((ws1 != -1.0) && (ws2 == -1.0)) {
-										index = lower;
-										goto LOOKUP;
-									} else if ((ws1 != -1.0) && (ws2 != -1.0)) {
-										double ds1 = m_sectors[i]->m_entries[higher].m_speed - m_sectors[i]->m_entries[lower].m_speed;
-										double ds2 = m_wx.WindSpeed - m_sectors[i]->m_entries[lower].m_speed;
-										wx->WindSpeed = (ws2 - ws1) / ds1 * ds2 + m_sectors[i]->m_entries[lower].m_speed;
-										wx->SpecifiedBits |= IWXDATA_SPECIFIED_WINDSPEED | IWXDATA_OVERRODE_WINDSPEED;
-									}
-								}
-							} else {
-								LOOKUP:
-								if (m_sectors[i]->m_entries[index].m_data) {
-									std::uint16_t *data = m_sectors[i]->m_entries[index].m_data;
-									bool *valid = m_sectors[i]->m_entries[index].m_datavalid;
-									if (valid[this->ArrayIndex(x, y)]) {
-										double speed = m_sectors[i]->m_entries[index].m_speed;
-										double scale;
-										if (speed > 0.0)
-											scale = m_wx.WindSpeed / speed;
-										else	scale = 1.0;
-										double in_speed = (((double)data[this->ArrayIndex(x, y)]) / 10.0);
-										wx->WindSpeed = scale * in_speed;
-										wx->SpecifiedBits |= IWXDATA_SPECIFIED_WINDSPEED | IWXDATA_OVERRODE_WINDSPEED;
-									}
-								} else {
-									weak_assert(false); // this shouldn't be the case
-								}
-								break;
+							bool can_break = false;
+							if (can_break = calculateSpeed(x, y, i, m_wx.WindSpeed, &wx->WindSpeed)) {
+								wx->SpecifiedBits |= IWXDATA_SPECIFIED_WINDSPEED | IWXDATA_OVERRODE_WINDSPEED;
 							}
+							if (wx->SpecifiedBits & IWXDATA_SPECIFIED_WINDGUST) {
+								if (calculateSpeed(x, y, i, m_wx.WindGust, &wx->WindGust)) {
+									wx->SpecifiedBits |= IWXDATA_SPECIFIED_WINDGUST | IWXDATA_OVERRODE_WINDGUST;
+								}
+							}
+							if (can_break)
+								break;
 						}
 					}
-				} else if ((t >= (m_lStartTime + m_startSpan)) && (t <= (m_lEndTime + WTimeSpan(53 * 24 * 60 * 60))))
+				}
+				else if ((time >= (m_lStartTime + m_startSpan)) && (time <= (m_lEndTime + WTimeSpan(53 * 24 * 60 * 60)))) {
 					wx->SpecifiedBits |= IWXDATA_OVERRODEHISTORY_WINDSPEED;
+					if (wx->SpecifiedBits & IWXDATA_SPECIFIED_WINDGUST)
+						wx->SpecifiedBits |= IWXDATA_OVERRODEHISTORY_WINDGUST;
+				}
 			} else if ((!((!m_lStartTime.GetTime(0)) && (!m_lEndTime.GetTime(0)))) &&
-				((t > m_lEndTime) && (t <= (m_lEndTime + WTimeSpan(53 * 24 * 60 * 60)))))
+				((time > m_lEndTime) && (time <= (m_lEndTime + WTimeSpan(53 * 24 * 60 * 60)))))
 			{										// if we are in the valid times for this filter, then let's see if the filter changes any data.
 				wx->SpecifiedBits |= IWXDATA_OVERRODEHISTORY_WINDSPEED;
+				if (wx->SpecifiedBits & IWXDATA_SPECIFIED_WINDGUST)
+					wx->SpecifiedBits |= IWXDATA_OVERRODEHISTORY_WINDGUST;
 			}
 		}
 	}
 	return hr;
+}
+
+
+bool CCWFGM_WindSpeedGrid::calculateSpeed(const std::uint16_t x, const std::uint16_t y, const std::uint16_t i, const double windspeed, double *newspeed) const {
+	std::uint16_t index;
+	if (m_sectors[i]->m_entries.size() == 0) {
+	}
+	else if (m_sectors[i]->m_entries.size() == 1) {
+		index = 0;
+		goto LOOKUP;
+	}
+	else if ((index = m_sectors[i]->GetSpeedIndex(windspeed)) == (std::uint16_t)-1) {
+		std::uint16_t lower = m_sectors[i]->GetLowerSpeedIndex(windspeed);
+		std::uint16_t higher = m_sectors[i]->GetHigherSpeedIndex(windspeed);
+		if ((lower == (std::uint16_t)-1) && (higher != (std::uint16_t)-1)) {
+			index = higher;
+			goto LOOKUP;
+		}
+		else if ((lower != (std::uint16_t)-1) && (higher == (std::uint16_t)-1)) {
+			index = lower;
+			goto LOOKUP;
+		}
+		else {
+			weak_assert(lower != (std::uint16_t)-1);
+			weak_assert(higher != (std::uint16_t)-1);
+			double ws1, ws2;
+
+			std::uint16_t* data = m_sectors[i]->m_entries[lower].m_data;
+			bool* valid = m_sectors[i]->m_entries[lower].m_datavalid;
+			if (valid[this->ArrayIndex(x, y)])
+				ws1 = (((double)data[this->ArrayIndex(x, y)]) / 10.0);
+			else	ws1 = -1.0;
+
+			data = m_sectors[i]->m_entries[higher].m_data;
+			valid = m_sectors[i]->m_entries[higher].m_datavalid;
+			if (valid[this->ArrayIndex(x, y)])
+				ws2 = (((double)data[this->ArrayIndex(x, y)]) / 10.0);
+			else	ws2 = -1.0;
+
+			if ((ws1 == -1.0) && (ws2 != -1.0)) {
+				index = higher;
+				goto LOOKUP;
+			}
+			else if ((ws1 != -1.0) && (ws2 == -1.0)) {
+				index = lower;
+				goto LOOKUP;
+			}
+			else if ((ws1 != -1.0) && (ws2 != -1.0)) {
+				double ds1 = m_sectors[i]->m_entries[higher].m_speed - m_sectors[i]->m_entries[lower].m_speed;
+				double ds2 = windspeed - m_sectors[i]->m_entries[lower].m_speed;
+				*newspeed = (ws2 - ws1) / ds1 * ds2 + m_sectors[i]->m_entries[lower].m_speed;
+				return true;
+			}
+		}
+	}
+	else {
+	LOOKUP:
+		if (m_sectors[i]->m_entries[index].m_data) {
+			std::uint16_t* data = m_sectors[i]->m_entries[index].m_data;
+			bool* valid = m_sectors[i]->m_entries[index].m_datavalid;
+			if (valid[this->ArrayIndex(x, y)]) {
+				double speed = m_sectors[i]->m_entries[index].m_speed;
+				double scale;
+				if (speed > 0.0)
+					scale = windspeed / speed;
+				else	scale = 1.0;
+				double in_speed = (((double)data[this->ArrayIndex(x, y)]) / 10.0);
+				*newspeed = scale * in_speed;
+				return true;
+			}
+								}
+		else {
+			weak_assert(false); // this shouldn't be the case
+		}
+	}
+	return false;
 }
 
 
@@ -935,3 +963,12 @@ std::uint16_t CCWFGM_WindSpeedGrid::convertY(double y, XY_Rectangle* bbox) {
 	}
 	return (std::uint16_t)cy;
 }
+
+
+std::uint32_t CCWFGM_WindSpeedGrid::ArrayIndex(std::uint16_t x, std::uint16_t y) const
+{
+	if ((m_ysize == (std::uint16_t)-1) && (m_xsize == (std::uint16_t)-1)) {
+		m_gridEngine(nullptr)->GetDimensions(0, &((CCWFGM_WindSpeedGrid *)this)->m_xsize, &((CCWFGM_WindSpeedGrid *)this)->m_ysize);
+	}
+	return (m_ysize - (y + 1)) * m_xsize + x;
+};

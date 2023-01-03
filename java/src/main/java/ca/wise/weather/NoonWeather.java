@@ -57,6 +57,10 @@ public class NoonWeather extends LinkedListNode {
 	 */
 	public double m_ws;
 	/**
+	 * The wind gust at noon (km/h).
+	 */
+	public double m_wg;
+	/**
 	 * The wind direction at noon (radians).
 	 */
 	public double m_wd;
@@ -130,19 +134,21 @@ public class NoonWeather extends LinkedListNode {
 		m_SolarNoon = new WTime(0, m_condition.m_timeManager);
 	}
 	
-	public void setNoonWeather(double temp, double rh, double ws, double wd, double precip) {
+	public void setNoonWeather(double temp, double rh, double ws, double wg, double wd, double precip) {
 		this.m_temperature = temp;
 		this.m_rh = rh;
 		this.m_ws = ws;
+		this.m_wg = wg;
 		this.m_wd = wd;
 		this.m_precip = precip;
 	}
 	
-	public void getNoonWeather(OutVariable<Double> temp, OutVariable<Double> dew, OutVariable<Double> rh, OutVariable<Double> ws, OutVariable<Double> wd, OutVariable<Double> precip) {
+	public void getNoonWeather(OutVariable<Double> temp, OutVariable<Double> dew, OutVariable<Double> rh, OutVariable<Double> ws, OutVariable<Double> wg, OutVariable<Double> wd, OutVariable<Double> precip) {
 		temp.value = m_temperature;
 		dew.value = m_dewpoint;
 		rh.value = m_rh;
 		ws.value = m_ws;
+		wg.value = m_wg;
 		wd.value = m_wd;
 		precip.value = m_precip;
 	}

@@ -614,13 +614,16 @@ public class CWFGM_WeatherStream implements Serializable, Cloneable {
 	 * @param max_temp Returned maximum temperature.
 	 * @param min_ws Returned minimum windspeed.
 	 * @param max_ws Returned maximum windspeed.
+	 * @param min_wg Returned minimum wind gust.
+	 * @param max_wg Returned maximum wind gust.
 	 * @param rh Returned relative humidity.
 	 * @param precip Returned precipitation for the day.
 	 * @param wd Returned mean wind direction, provided in Cartesian radians.
 	 */
 	public void getDailyValues(WTime time, OutVariable<Double> min_temp, OutVariable<Double> max_temp, OutVariable<Double> min_ws,
-			OutVariable<Double> max_ws, OutVariable<Double> rh, OutVariable<Double> precip, OutVariable<Double> wd) {
-		m_weatherCondition.getDailyWeatherValues(time, min_temp, max_temp, min_ws, max_ws, rh, precip, wd);
+			OutVariable<Double> max_ws, OutVariable<Double> min_wg,
+			OutVariable<Double> max_wg, OutVariable<Double> rh, OutVariable<Double> precip, OutVariable<Double> wd) {
+		m_weatherCondition.getDailyWeatherValues(time, min_temp, max_temp, min_ws, max_ws, min_wg, max_wg, rh, precip, wd);
 	}
 
 	/**
@@ -630,13 +633,15 @@ public class CWFGM_WeatherStream implements Serializable, Cloneable {
 	 * @param max_temp Maximum temperature.
 	 * @param min_ws Minimum windspeed.
 	 * @param max_ws Maximum windspeed.
+	 * @param min_wg Minimum wind gust.
+	 * @param max_wg Maximum wind gust.
 	 * @param rh Relative humidity.
 	 * @param precip Daily precipitation.
 	 * @param wd Mean wind direction.
 	 */
-	public void setDailyValues(WTime time, double min_temp, double max_temp, double min_ws, double max_ws,
+	public void setDailyValues(WTime time, double min_temp, double max_temp, double min_ws, double max_ws, double min_wg, double max_wg,
 	    double rh, double precip, double wd) {
-		m_weatherCondition.setDailyWeatherValues(time, min_temp, max_temp, min_ws, max_ws, rh, precip, wd);
+		m_weatherCondition.setDailyWeatherValues(time, min_temp, max_temp, min_ws, max_ws, min_wg, max_wg, rh, precip, wd);
 	}
 
 	/**
@@ -669,12 +674,13 @@ public class CWFGM_WeatherStream implements Serializable, Cloneable {
 				    (wx.rh == curr_wx.value.rh) &&
 				    (wx.precipitation == curr_wx.value.precipitation) &&
 				    (wx.windDirection == curr_wx.value.windDirection) &&
-				    (wx.windSpeed == curr_wx.value.windSpeed))
+				    (wx.windSpeed == curr_wx.value.windSpeed) &&
+					(wx.windGust == curr_wx.value.windGust))
 					return;
 			}
 		}
 
-		boolean b = m_weatherCondition.setHourlyWeatherValues(time, wx.temperature, wx.rh, wx.precipitation, wx.windSpeed, wx.windDirection, wx.dewPointTemperature);
+		boolean b = m_weatherCondition.setHourlyWeatherValues(time, wx.temperature, wx.rh, wx.precipitation, wx.windSpeed, wx.windGust, wx.windDirection, wx.dewPointTemperature);
 		if (!b)
 			return;
 		m_bRequiresSave = true;
