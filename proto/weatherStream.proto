@@ -36,7 +36,7 @@ message WeatherStream {
 
     enum FFMCMethod {
         VAN_WAGNER = 0;
-        HYBRID = 1;
+        HYBRID = 1 [deprecated = true];
         LAWSON = 2;
     }
 

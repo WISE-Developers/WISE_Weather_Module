@@ -78,7 +78,7 @@ IMPLEMENT_OBJECT_CACHE_MT_NO_TEMPLATE(StreamNode, StreamNode, 16 * 1024 / sizeof
 HRESULT CCWFGM_WeatherStation::get_GridEngine(boost::intrusive_ptr<ICWFGM_GridEngine> *pVal) {
 	if (!pVal)								return E_POINTER;
 	*pVal = m_gridEngine;
-	if (!m_gridEngine) { weak_assert(0); return ERROR_WEATHER_STATION_UNINITIALIZED; }
+	if (!m_gridEngine) { weak_assert(false); return ERROR_WEATHER_STATION_UNINITIALIZED; }
 	return S_OK;
 }
 
@@ -106,7 +106,7 @@ HRESULT CCWFGM_WeatherStation::put_CommonData(ICWFGM_CommonData* pVal) {
 
 
 HRESULT CCWFGM_WeatherStation::Valid(const HSS_Time::WTime &start_time, const HSS_Time::WTimeSpan &duration) {
-	if (!m_gridEngine) { weak_assert(0); return ERROR_WEATHER_STATION_UNINITIALIZED; }
+	if (!m_gridEngine) { weak_assert(false); return ERROR_WEATHER_STATION_UNINITIALIZED; }
 	return S_OK;
 }
 
@@ -263,7 +263,7 @@ HRESULT CCWFGM_WeatherStation::GetAttribute(std::uint16_t option, PolymorphicAtt
 						   }
 	}
 
-	weak_assert(0);
+	weak_assert(false);
 	return E_INVALIDARG;
 }
 
@@ -279,8 +279,8 @@ HRESULT CCWFGM_WeatherStation::SetAttribute(std::uint16_t option, const Polymorp
 	switch (option) {
 		case CWFGM_GRID_ATTRIBUTE_LATITUDE:
 										if (FAILED(hr = VariantToDouble_(var, &value)))			break;
-										if (value < DEGREE_TO_RADIAN(-90.0))					{ weak_assert(0); return E_INVALIDARG; }
-										if (value > DEGREE_TO_RADIAN(90.0))						{ weak_assert(0); return E_INVALIDARG; }
+										if (value < DEGREE_TO_RADIAN(-90.0))					{ weak_assert(false); return E_INVALIDARG; }
+										if (value > DEGREE_TO_RADIAN(90.0))						{ weak_assert(false); return E_INVALIDARG; }
 										if (m_latitude != value) {
 											m_latitude = value;
 											resetStreams();
@@ -293,8 +293,8 @@ HRESULT CCWFGM_WeatherStation::SetAttribute(std::uint16_t option, const Polymorp
 
 		case CWFGM_GRID_ATTRIBUTE_LONGITUDE:
 										if (FAILED(hr = VariantToDouble_(var, &value)))			break;				
-										if (value < DEGREE_TO_RADIAN(-180.0))					{ weak_assert(0); return E_INVALIDARG; }
-										if (value > DEGREE_TO_RADIAN(180.0))					{ weak_assert(0); return E_INVALIDARG; }
+										if (value < DEGREE_TO_RADIAN(-180.0))					{ weak_assert(false); return E_INVALIDARG; }
+										if (value > DEGREE_TO_RADIAN(180.0))					{ weak_assert(false); return E_INVALIDARG; }
 										if (m_longitude != value) {
 											m_longitude = value;
 											resetStreams();
@@ -316,7 +316,7 @@ HRESULT CCWFGM_WeatherStation::SetAttribute(std::uint16_t option, const Polymorp
 										return S_OK;
 	}
 
-	weak_assert(0);
+	weak_assert(false);
 	return hr;
 }
 

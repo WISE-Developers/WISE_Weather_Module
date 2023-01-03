@@ -43,15 +43,15 @@ void CCWFGM_WeatherStation::calculateXY() {
 	double latitude = RADIAN_TO_DEGREE(m_latitude), longitude = RADIAN_TO_DEGREE(m_longitude);
 	std::uint16_t xdim, ydim;
 	HRESULT hr;
-	if (FAILED(hr = m_gridEngine->GetDimensions(0, &xdim, &ydim))) { weak_assert(0); return; }
+	if (FAILED(hr = m_gridEngine->GetDimensions(0, &xdim, &ydim))) { weak_assert(false); return; }
 
 	/*POLYMORPHIC CHECK*/
 	PolymorphicAttribute var;
 
-	if (FAILED(hr = m_gridEngine->GetAttribute(0, CWFGM_GRID_ATTRIBUTE_SPATIALREFERENCE, &var))) { weak_assert(0); return; }
+	if (FAILED(hr = m_gridEngine->GetAttribute(0, CWFGM_GRID_ATTRIBUTE_SPATIALREFERENCE, &var))) { weak_assert(false); return; }
 	std::string projection;
 	
-	try { projection = std::get<std::string>(var); } catch (std::bad_variant_access&) { weak_assert(0); return; };
+	try { projection = std::get<std::string>(var); } catch (std::bad_variant_access&) { weak_assert(false); return; };
 
 	CCoordinateConverter cc;
 	cc.SetSourceProjection(projection.c_str());
@@ -79,14 +79,14 @@ void CCWFGM_WeatherStation::calculateLatLon() {
 
 	std::uint16_t xdim, ydim;
 	HRESULT hr;
-	if (FAILED(hr = m_gridEngine->GetDimensions(0, &xdim, &ydim))) { weak_assert(0); return; }
+	if (FAILED(hr = m_gridEngine->GetDimensions(0, &xdim, &ydim))) { weak_assert(false); return; }
 
 	PolymorphicAttribute var;
 
-	if (FAILED(hr = m_gridEngine->GetAttribute(0, CWFGM_GRID_ATTRIBUTE_SPATIALREFERENCE, &var))) { weak_assert(0); return; }
+	if (FAILED(hr = m_gridEngine->GetAttribute(0, CWFGM_GRID_ATTRIBUTE_SPATIALREFERENCE, &var))) { weak_assert(false); return; }
 	std::string projection;
 	
-	try { projection = std::get<std::string>(var); } catch (std::bad_variant_access&) { weak_assert(0); return; };
+	try { projection = std::get<std::string>(var); } catch (std::bad_variant_access&) { weak_assert(false); return; };
 
 	CCoordinateConverter cc;
 	cc.SetSourceProjection(projection.c_str());
@@ -142,7 +142,7 @@ CCWFGM_WeatherStation* CCWFGM_WeatherStation::deserialize(const google::protobuf
 	if (!m_gridEngine) {
 		if (valid)
 			valid->add_child_validation("WISE.WeatherProto.CcwfgmWeatherStation", name, validation::error_level::WARNING, validation::id::initialization_incomplete, "gridEngine");
-		weak_assert(0);
+		weak_assert(false);
 		m_loadWarning = "Error: WISE.WeatherProto.CcwfgmWeatherStation: No grid engine";
 		throw ISerializeProto::DeserializeError("WISE.GridProto.CcwfgmWeatherStation: Incomplete initialization");
 	}
@@ -158,7 +158,7 @@ CCWFGM_WeatherStation* CCWFGM_WeatherStation::deserialize(const google::protobuf
 			/// <type>internal</type>
 			valid->add_child_validation("WISE.WeatherProto.CwfgmWeatherStation", name, validation::error_level::SEVERE,
 				validation::id::object_invalid, message.GetDescriptor()->name());
-		weak_assert(0);
+		weak_assert(false);
 		m_loadWarning = "Error: WISE.WeatherProto.CcwfgmWeatherStation: Protobuf object invalid";
 		throw ISerializeProto::DeserializeError("WISE.WeatherProto.CcwfgmWeatherStation: Protobuf object invalid", ERROR_PROTOBUF_OBJECT_INVALID);
 	}
@@ -172,7 +172,7 @@ CCWFGM_WeatherStation* CCWFGM_WeatherStation::deserialize(const google::protobuf
 			/// <type>user</type>
 			valid->add_child_validation("WISE.WeatherProto.CwfgmWeatherStation", name, validation::error_level::SEVERE,
 				validation::id::version_mismatch, std::to_string(proto->version()));
-		weak_assert(0);
+		weak_assert(false);
 		m_loadWarning = "Error: WISE.WeatherProto.CcwfgmWeatherStation: Version is invalid";
 		throw ISerializeProto::DeserializeError("WISE.WeatherProto.CcwfgmWeatherStation: Version is invalid", ERROR_PROTOBUF_OBJECT_VERSION_INVALID);
 	}
@@ -197,7 +197,7 @@ CCWFGM_WeatherStation* CCWFGM_WeatherStation::deserialize(const google::protobuf
 				myValid->add_child_validation("WISE.WeatherProto.CwfgmWeatherStation", name, validation::error_level::SEVERE,
 					validation::id::initialization_incomplete, "projection");
 			m_loadWarning = "Error: WISE.WeatherProto.CcwfgmWeatherStation: Incomplete initialization";
-			weak_assert(0);
+			weak_assert(false);
 			throw ISerializeProto::DeserializeError("WISE.GridProto.CcwfgmWeatherStation: Incomplete initialization");
 		}
 		if (std::holds_alternative<std::string>(var))
@@ -242,7 +242,7 @@ CCWFGM_WeatherStation* CCWFGM_WeatherStation::deserialize(const google::protobuf
 				stream = new CCWFGM_WeatherStream();
 			}
 			catch (std::exception& e) {
-				weak_assert(0);
+				weak_assert(false);
 				m_loadWarning = "Error: WISE.GridProto.CcwfgmWeatherStation: No more memory";
 				/// <summary>
 				/// The COM object could not be instantiated.

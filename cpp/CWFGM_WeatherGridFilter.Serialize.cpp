@@ -75,7 +75,7 @@ HRESULT CCWFGM_WeatherGridFilter::ImportPolygons(const std::string & file_path, 
 			gridResolution = std::get<double>(var);
 		}
 		catch (std::bad_variant_access&) {
-			weak_assert(0);
+			weak_assert(false);
 			if (pd)
 				free(pd);
 			return E_FAIL;
@@ -85,11 +85,11 @@ HRESULT CCWFGM_WeatherGridFilter::ImportPolygons(const std::string & file_path, 
 		if (FAILED(hr = gridEngine->GetAttribute(0, CWFGM_GRID_ATTRIBUTE_SPATIALREFERENCE, &var)))	{ if (pd) { std::uint32_t i = 0; while (pd[i]) free((APTR)pd[i++]); free(pd); } return hr; } 
 		std::string projection;
 		
-		try { projection = std::get<std::string>(var); } catch (std::bad_variant_access&) { weak_assert(0); return ERROR_PROJECTION_UNKNOWN; };
+		try { projection = std::get<std::string>(var); } catch (std::bad_variant_access&) { weak_assert(false); return ERROR_PROJECTION_UNKNOWN; };
 
 		oSourceSRS = CCoordinateConverter::CreateSpatialReferenceFromWkt(projection.c_str());
 	} else {
-		weak_assert(0);
+		weak_assert(false);
 //		if (oSourceSRS)
 //			OSRDestroySpatialReference(oSourceSRS);
 		if (pd) { std::uint32_t i = 0; while (pd[i]) free((APTR)pd[i++]); free(pd); }
@@ -153,7 +153,7 @@ HRESULT CCWFGM_WeatherGridFilter::ImportPolygonsWFS(const std::string & url, con
 			gridResolution = std::get<double>(var);
 		}
 		catch (std::bad_variant_access&) {
-			weak_assert(0);
+			weak_assert(false);
 			return E_FAIL;
 		}
 
@@ -161,11 +161,11 @@ HRESULT CCWFGM_WeatherGridFilter::ImportPolygonsWFS(const std::string & url, con
 		if (FAILED(hr = gridEngine->GetAttribute(0, CWFGM_GRID_ATTRIBUTE_SPATIALREFERENCE, &var))) { return hr; }
 		std::string projection;
 		
-		try { projection = std::get<std::string>(var); } catch (std::bad_variant_access&) { weak_assert(0); return ERROR_PROJECTION_UNKNOWN; };
+		try { projection = std::get<std::string>(var); } catch (std::bad_variant_access&) { weak_assert(false); return ERROR_PROJECTION_UNKNOWN; };
 
 		oSourceSRS = CCoordinateConverter::CreateSpatialReferenceFromWkt(projection.c_str());
 	} else {
-		weak_assert(0);
+		weak_assert(false);
 		return ERROR_GRID_UNINITIALIZED;
 	}
 
@@ -217,11 +217,11 @@ HRESULT CCWFGM_WeatherGridFilter::ExportPolygons(const std::string & driver_name
 		if (FAILED(hr = gridEngine->GetAttribute(0, CWFGM_GRID_ATTRIBUTE_SPATIALREFERENCE, &var)))	{ if (oTargetSRS) OSRDestroySpatialReference(oTargetSRS); return hr; }
 		std::string projection;
 		
-		try { projection = std::get<std::string>(var); } catch (std::bad_variant_access&) { weak_assert(0); return ERROR_PROJECTION_UNKNOWN; };
+		try { projection = std::get<std::string>(var); } catch (std::bad_variant_access&) { weak_assert(false); return ERROR_PROJECTION_UNKNOWN; };
 
 		oSourceSRS = CCoordinateConverter::CreateSpatialReferenceFromWkt(projection.c_str());
 	} else {
-		weak_assert(0);
+		weak_assert(false);
 		if (oTargetSRS)
 			OSRDestroySpatialReference(oTargetSRS);
 		return ERROR_GRID_UNINITIALIZED;
@@ -263,7 +263,7 @@ WISE::WeatherProto::WeatherGridFilter* CCWFGM_WeatherGridFilter::serialize(const
 
 	PolymorphicAttribute var;
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine;
-	if (!(gridEngine = m_gridEngine(nullptr))) { weak_assert(0); delete filter; throw std::runtime_error("No grid engine"); }
+	if (!(gridEngine = m_gridEngine(nullptr))) { weak_assert(false); delete filter; throw std::runtime_error("No grid engine"); }
 
 	if (FAILED(gridEngine->GetAttribute(0, CWFGM_GRID_ATTRIBUTE_SPATIALREFERENCE, &var))) {
 		delete filter;
@@ -432,7 +432,7 @@ CCWFGM_WeatherGridFilter *CCWFGM_WeatherGridFilter::deserialize(const google::pr
 	if (!(gridEngine = m_gridEngine(nullptr))) {
 		if (valid)
 			valid->add_child_validation("WISE.WeatherProto.WeatherGridFilter", name, validation::error_level::WARNING, validation::id::initialization_incomplete, "gridengine");
-		weak_assert(0);
+		weak_assert(false);
 		m_loadWarning = "Error: WISE.WeatherProto.CwfgmWeatherGridFilter: No grid engine";
 		throw ISerializeProto::DeserializeError("WISE.GridProto.CwfgmPolyReplaceGridFilter: Incomplete initialization");
 	}
@@ -445,7 +445,7 @@ CCWFGM_WeatherGridFilter *CCWFGM_WeatherGridFilter::deserialize(const google::pr
 	{
 		if (valid)
 			valid->add_child_validation("WISE.WeatherProto.WeatherGridFilter", name, validation::error_level::SEVERE, validation::id::object_invalid, proto.GetDescriptor()->name());
-		weak_assert(0);
+		weak_assert(false);
 		m_loadWarning = "Error: WISE.WeatherProto.CwfgmWeatherGridFilter: Protobuf object invalid";
 		throw ISerializeProto::DeserializeError("WISE.WeatherProto.CwfgmWeatherGridFilter: Protobuf object invalid", ERROR_PROTOBUF_OBJECT_INVALID);
 	}
@@ -454,7 +454,7 @@ CCWFGM_WeatherGridFilter *CCWFGM_WeatherGridFilter::deserialize(const google::pr
 	{
 		if (valid)
 			valid->add_child_validation("WISE.WeatherProto.WeatherGridFilter", name, validation::error_level::SEVERE, validation::id::version_mismatch, std::to_string(filter->version()));
-		weak_assert(0);
+		weak_assert(false);
 		m_loadWarning = "Error: WISE.WeatherProto.CwfgmWeatherGridFilter: Version is invalid";
 		throw ISerializeProto::DeserializeError("WISE.WeatherProto.CwfgmWeatherGridFilter: Version is invalid", ERROR_PROTOBUF_OBJECT_VERSION_INVALID);
 	}
@@ -469,7 +469,7 @@ CCWFGM_WeatherGridFilter *CCWFGM_WeatherGridFilter::deserialize(const google::pr
 			/// <type>internal</type>
 			valid->add_child_validation("WISE.WeatherProto.WeatherGridFilter", name, validation::error_level::SEVERE,
 				validation::id::initialization_incomplete, "projection");
-		weak_assert(0);
+		weak_assert(false);
 		m_loadWarning = "Error: WISE.WeatherProto.WeatherGridFilter: Incomplete initialization";
 		throw ISerializeProto::DeserializeError("WISE.WeatherProto.WeatherGridFilter: Incomplete initialization");
 	}
@@ -688,7 +688,7 @@ CCWFGM_WeatherGridFilter *CCWFGM_WeatherGridFilter::deserialize(const google::pr
 				m_poly_wd_val = DEGREE_TO_RADIAN(315.0);
 				break;
             default:
-                weak_assert(0);
+                weak_assert(false);
                 break;
 			}
 		}

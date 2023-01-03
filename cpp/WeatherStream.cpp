@@ -623,28 +623,7 @@ bool WeatherCondition::GetInstantaneousValues(const WTime &time, std::uint32_t m
 			ifwi->FFMC = ffmc1 * perc1 + ffmc2 * perc2;	// RWB: 080203: if the target FFMC value was specified by the user, then we should linearly interpolate to it to make sure we are consistent
 		} else {						// but because using ffmc1 as a starting code (below) we aren't concerned about checking fs1
 				switch (m_options & FFMC_MASK) {
-					case FFMC_HYBRID:		{	WTime dayStart(time);
-								dayStart.PurgeToDay(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST);
-								double prev_ffmc, prev_hr_ffmc, today_ffmc;
-								DailyFFMC(dayStart, &prev_ffmc, &spec);
-								DailyFFMC(dayStart + WTimeSpan(0, 18, 0, 0), &today_ffmc, &spec);
-
-								WTime prevLoop(nt2), loopStop(nt2);
-								loopStop -= WTimeSpan(0, 48, 0, 0);
-
-								prev_hr_ffmc = ffmc1;
-
-								std::array<double, 48> rain48;
-								std::int16_t ii;
-								for (ii = 0; prevLoop > loopStop; prevLoop -= WTimeSpan(0, 1, 0, 0), ii++)
-									rain48[ii] = GetHourlyRain(prevLoop);
-								for (; ii < 48; ii++)
-									rain48[ii] = 0.0;
-
-								m_fwi->HourlyFFMC_Hybrid(prev_ffmc, today_ffmc, prev_hr_ffmc, rain48, wx->Temperature, wx->RH, wx->WindSpeed,
-								    (std::uint32_t)time.GetTimeOfDay(WTIME_FORMAT_AS_LOCAL).GetTotalSeconds(), &ifwi->FFMC);
-								break;
-							}
+					case FFMC_HYBRID:
 					case FFMC_LAWSON:		{	double prev_ffmc, today_ffmc;
 
 								WTime dayStart(time);
@@ -687,7 +666,7 @@ bool WeatherCondition::HourlyFFMC(const WTime &time, double *ffmc) {
 		*ffmc = m_initialHFFMC;
 		return true;
 	} else {
-		weak_assert(0);
+		weak_assert(false);
 	}
 	return (_dc != NULL);
 }
@@ -1510,8 +1489,6 @@ WISE::WeatherProto::WeatherStream* WeatherCondition::serialize(const SerializePr
 		stream->set_hffmcmethod(WISE::WeatherProto::WeatherStream_FFMCMethod_VAN_WAGNER);
 		break;
 	case FFMC_HYBRID:
-		stream->set_hffmcmethod(WISE::WeatherProto::WeatherStream_FFMCMethod_HYBRID);
-		break;
 	default:
 		stream->set_hffmcmethod(WISE::WeatherProto::WeatherStream_FFMCMethod_LAWSON);
 		break;
@@ -1565,7 +1542,7 @@ WeatherCondition* WeatherCondition::deserialize(const google::protobuf::Message&
 			/// <type>internal</type>
 			valid->add_child_validation("WISE.WeatherProto.WeatherStream", name, validation::error_level::SEVERE,
 				validation::id::object_invalid, proto.GetDescriptor()->name());
-		weak_assert(0);
+		weak_assert(false);
 		throw ISerializeProto::DeserializeError("Error: WISE.WeatherProto.WeatherCondition: Protobuf object invalid", ERROR_PROTOBUF_OBJECT_INVALID);
 	}
 
@@ -1578,7 +1555,7 @@ WeatherCondition* WeatherCondition::deserialize(const google::protobuf::Message&
 			/// <type>user</type>
 			valid->add_child_validation("WISE.WeatherProto.WeatherStream", name, validation::error_level::SEVERE,
 				validation::id::version_mismatch, std::to_string(conditions->version()));
-		weak_assert(0);
+		weak_assert(false);
 		throw ISerializeProto::DeserializeError("Error: WISE.WeatherProto.WeatherCondition: Version is invalid", ERROR_PROTOBUF_OBJECT_VERSION_INVALID);
 	}
 

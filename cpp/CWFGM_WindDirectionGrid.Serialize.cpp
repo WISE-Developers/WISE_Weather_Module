@@ -46,7 +46,7 @@ HRESULT CCWFGM_WindDirectionGrid::Import(const std::uint16_t sector, const doubl
 	if (!engaged)								return ERROR_SCENARIO_SIMULATION_RUNNING;
 
 	boost::intrusive_ptr<ICWFGM_GridEngine> engine;
-	if (!(engine = m_gridEngine(nullptr)))					{ weak_assert(0); return ERROR_GRID_UNINITIALIZED; }
+	if (!(engine = m_gridEngine(nullptr)))					{ weak_assert(false); return ERROR_GRID_UNINITIALIZED; }
 
 	GDALImporter importer;
 	if (importer.Import(grid_file_name.c_str(), nullptr) != GDALImporter::ImportResult::OK)
@@ -65,7 +65,7 @@ HRESULT CCWFGM_WindDirectionGrid::Import(const std::uint16_t sector, const doubl
 		/*POLYMORPHIC CHECK*/
 		std::string csProject;
 		
-		try { csProject = std::get<std::string>(v); } catch (std::bad_variant_access&) { weak_assert(0); return ERROR_PROJECTION_UNKNOWN; };
+		try { csProject = std::get<std::string>(v); } catch (std::bad_variant_access&) { weak_assert(false); return ERROR_PROJECTION_UNKNOWN; };
 
 		OGRSpatialReferenceH m_sourceSRS = CCoordinateConverter::CreateSpatialReferenceFromWkt(csProject.c_str());
 		if (m_sourceSRS) {
@@ -122,7 +122,7 @@ HRESULT CCWFGM_WindDirectionGrid::Import(const std::uint16_t sector, const doubl
 		if (FAILED(hr = engine->GetAttribute(nullptr, CWFGM_GRID_ATTRIBUTE_YLLCORNER, &var))) return hr;
 		gridYLL = std::get<double>(var);
 	} catch (std::bad_variant_access&) { 
-		weak_assert(0); 
+		weak_assert(false); 
 		return ERROR_GRID_UNINITIALIZED; 
 	}
 
@@ -210,7 +210,7 @@ HRESULT CCWFGM_WindDirectionGrid::Export(const std::uint16_t sector, const doubl
 	CRWThreadSemaphoreEngage engage(m_lock, SEM_FALSE);
 
 	boost::intrusive_ptr<ICWFGM_GridEngine> engine;
-	if (!(engine = m_gridEngine(nullptr)))					{ weak_assert(0); return ERROR_GRID_UNINITIALIZED; }
+	if (!(engine = m_gridEngine(nullptr)))					{ weak_assert(false); return ERROR_GRID_UNINITIALIZED; }
 
 	if ((sector != (std::uint16_t)-1) && (sector >= m_sectors.size()))
 		return ERROR_SECTOR_INVALID_INDEX;
@@ -265,7 +265,7 @@ HRESULT CCWFGM_WindDirectionGrid::Export(const std::uint16_t sector, const doubl
 	/*POLYMORPHIC CHECK*/
 	std::string ref;
 	
-	try { ref = std::get<std::string>(v); } catch (std::bad_variant_access&) { weak_assert(0); return ERROR_PROJECTION_UNKNOWN; };
+	try { ref = std::get<std::string>(v); } catch (std::bad_variant_access&) { weak_assert(false); return ERROR_PROJECTION_UNKNOWN; };
 
 	const char *cref = ref.c_str();
 	exporter.setProjection(cref);
@@ -434,7 +434,7 @@ CCWFGM_WindDirectionGrid* CCWFGM_WindDirectionGrid::deserialize(const google::pr
 	if (!(gridEngine = m_gridEngine(nullptr))) {
 		if (valid)
 			valid->add_child_validation("WISE.WeatherProto.WindGrid", name, validation::error_level::WARNING, validation::id::initialization_incomplete, "gridengine");
-		weak_assert(0);
+		weak_assert(false);
 		m_loadWarning = "Error: WISE.WeatherProto.WindGrid: No grid engine";
 		throw ISerializeProto::DeserializeError("WISE.GridProto.WindGrid: Incomplete initialization");
 	}
@@ -452,7 +452,7 @@ CCWFGM_WindDirectionGrid* CCWFGM_WindDirectionGrid::deserialize(const google::pr
 			/// <type>internal</type>
 			valid->add_child_validation("WISE.WeatherProto.WindGrid", name, validation::error_level::SEVERE,
 				validation::id::object_invalid, proto.GetDescriptor()->name());
-		weak_assert(0);
+		weak_assert(false);
 		m_loadWarning = "Error: WISE.WeatherProto.CwfgmWindDirectionGrid: Protobuf object invalid";
 		throw ISerializeProto::DeserializeError("WISE.WeatherProto.CwfgmWindDirectionGrid: Protobuf object invalid", ERROR_PROTOBUF_OBJECT_INVALID);
 	}
@@ -466,7 +466,7 @@ CCWFGM_WindDirectionGrid* CCWFGM_WindDirectionGrid::deserialize(const google::pr
 			/// <type>user</type>
 			valid->add_child_validation("WISE.WeatherProto.WindGrid", name, validation::error_level::SEVERE,
 				validation::id::version_mismatch, std::to_string(grid->version()));
-		weak_assert(0);
+		weak_assert(false);
 		m_loadWarning = "Error: WISE.WeatherProto.CwfgmWindDirectionGrid: Version is invalid";
 		throw ISerializeProto::DeserializeError("WISE.WeatherProto.CwfgmWindDirectionGrid: Version is invalid", ERROR_PROTOBUF_OBJECT_VERSION_INVALID);
 	}
@@ -479,7 +479,7 @@ CCWFGM_WindDirectionGrid* CCWFGM_WindDirectionGrid::deserialize(const google::pr
 			/// <type>user</type>
 			valid->add_child_validation("WISE.WeatherProto.WindGrid", name, validation::error_level::WARNING,
 				validation::id::grid_type_invalid, std::to_string(grid->type()));
-		weak_assert(0);
+		weak_assert(false);
 		m_loadWarning = "Error: WISE.WeatherProto.CwfgmWindDirectionGrid: Non wind-direction grid passed to the direction grid deserializer";
 		throw ISerializeProto::DeserializeError("WISE.WeatherProto.CwfgmWindDirectionGrid: Non wind-direction grid passed to the direction grid deserializer");
 	}
@@ -584,7 +584,7 @@ CCWFGM_WindDirectionGrid* CCWFGM_WindDirectionGrid::deserialize(const google::pr
 				/// <type>user</type>
 				myValid->add_child_validation("WISE.GridProto.wcsData", "defaultSectorData", validation::error_level::SEVERE,
 					validation::id::version_mismatch, std::to_string(defaults.version()));
-			weak_assert(0);
+			weak_assert(false);
 			m_loadWarning = "Error: WISE.WeatherProto.CwfgmWindDirectionGrid: Version is invalid";
 			throw ISerializeProto::DeserializeError("WISE.WeatherProto.CwfgmWindDirectionGrid: Version is invalid");
 		}
@@ -612,7 +612,7 @@ CCWFGM_WindDirectionGrid* CCWFGM_WindDirectionGrid::deserialize(const google::pr
 					/// <type>internal</type>
 					defaultsValid->add_child_validation("WISE.WeatherProto.WindGrid", name, validation::error_level::SEVERE,
 						validation::id::initialization_incomplete, "dimensions");
-				weak_assert(0);
+				weak_assert(false);
 				m_loadWarning = "Error: WISE.WeatherProto.CwfgmWindDirectionGrid: Incomplete initialization";
 				throw ISerializeProto::DeserializeError("WISE.GridProto.WindGrid: Incomplete initialization");
 			}
@@ -685,7 +685,7 @@ CCWFGM_WindDirectionGrid* CCWFGM_WindDirectionGrid::deserialize(const google::pr
 					/// <type>user</type>
 					defaultsValid->add_child_validation("WISE.GridProto.wcsData.locationFile", "file", validation::error_level::SEVERE,
 						validation::id::projection_missing, defaults.file().filename());
-				weak_assert(0);
+				weak_assert(false);
 				m_loadWarning = "Error: WISE.WeatherProto.CwfgmWindDirectionGrid: Wind direction grid file import without projection.";
 				throw ISerializeProto::DeserializeError("WISE.WeatherProto.CwfgmWindDirectionGrid: Wind direction grid file import without projection.");
 			}
@@ -801,7 +801,7 @@ CCWFGM_WindDirectionGrid* CCWFGM_WindDirectionGrid::deserialize(const google::pr
 										/// <type>internal</type>
 										dataValid->add_child_validation("WISE.WeatherProto.WindGrid", name, validation::error_level::SEVERE,
 											validation::id::initialization_incomplete, "dimensions");
-									weak_assert(0);
+									weak_assert(false);
 									m_loadWarning = "Error: WISE.WeatherProto.CwfgmWindDirectionGrid: Incomplete initialization";
 									if (add)
 										delete s;
@@ -885,7 +885,7 @@ CCWFGM_WindDirectionGrid* CCWFGM_WindDirectionGrid::deserialize(const google::pr
 									/// <type>user</type>
 									dataValid->add_child_validation("WISE.GridProto.wcsData.locationFile", "file",
 										validation::error_level::SEVERE, validation::id::projection_missing, entry.data().file().filename());
-								weak_assert(0);
+								weak_assert(false);
 								m_loadWarning = "Error: WISE.WeatherProto.CwfgmWindDirectionGrid: Wind direction grid file import without projection.";
 								if (add)
 									delete s;

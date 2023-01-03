@@ -113,7 +113,6 @@ public:
 		<li><code>CWFGM_WEATHER_OPTION_WARNONSUNRISE</code>		Boolean.  true if sunrise could not be calculated.
 		<li><code>CWFGM_WEATHER_OPTION_WARNONSUNSET</code>		Boolean.  true if sunset could not be calculated.
 		<li><code>CWFGM_WEATHER_OPTION_FFMC_VANWAGNER</code>		Boolean.  Use the Van Wagner approach to calculating HFFMC values.  Also forces the object to ignore any provided FWI values (for consistency).
-		<li><code>CWFGM_WEATHER_OPTION_FFMC_HYBRID</code>		Boolean.  Do not use, only for experimental purposes.
 		<li><code>CWFGM_WEATHER_OPTION_FFMC_LAWSON</code>		Boolean.  Use the Lawson approach to calculating HFFMC values.  Also forces the object to ignore any provided FWI values (for consistency).
 		<li><code>CWFGM_WEATHER_OPTION_FWI_USE_SPECIFIED</code>		Boolean.  Use any/all FWI values provided in the input file.
 		<li><code>CWFGM_WEATHER_OPTION_ORIGIN_FILE</code>		Boolean.  Indicates whether the weather stream data origininated from an imported file.
@@ -154,7 +153,6 @@ public:
 		\param	option	The weather option of interest.  Valid values are:
 		<ul>
 		<li><code>CWFGM_WEATHER_OPTION_FFMC_VANWAGNER</code>		Boolean.  Use the Van Wagner approach to calculating HFFMC values
-		<li><code>CWFGM_WEATHER_OPTION_FFMC_HYBRID</code>		Boolean.  Do not use, only for experimental purposes.
 		<li><code>CWFGM_WEATHER_OPTION_FFMC_LAWSON</code>		Boolean.  Use the Lawson approach to calculating HFFMC values
 		<li><code>CWFGM_WEATHER_OPTION_FWI_USE_SPECIFIED</code>	Boolean.  Use any/all FWI values provided in the input file
 		<li><code>CWFGM_WEATHER_OPTION_TEMP_ALPHA</code>		64-bit floating point.  The 'alpha' value for Beck et. al. diurnal equations for temperature.

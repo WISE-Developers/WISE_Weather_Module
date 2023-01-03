@@ -265,7 +265,7 @@ WeatherBaseCache *WeatherLayerCache::cache(std::uint16_t x, std::uint16_t y) {
 			}
 		}
 	} catch (std::bad_alloc& cme) {
-		weak_assert(0);
+		weak_assert(false);
 		m_cacheArray[index] = NULL;
 	}
 
@@ -619,7 +619,7 @@ void WeatherCache::Remove(Layer *layerThread, std::uint16_t cacheIndex) {
 	if (layerThread == (Layer *)-1) {
 		std::map<Layer *, WeatherLayerCache*>::iterator it;
 		for (it = m_weatherLayerMap[cacheIndex].begin(); it != m_weatherLayerMap[cacheIndex].end(); it++) {
-			weak_assert(0);
+			weak_assert(false);
 			delete it->second;
 		}
 	}

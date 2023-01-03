@@ -84,14 +84,14 @@ CCWFGM_WeatherStream* CCWFGM_WeatherStream::deserialize(const google::protobuf::
 	{
 		if (valid)
 			valid->add_child_validation("WISE.WeatherProto.CwfgmWeatherStream", name, validation::error_level::SEVERE, validation::id::object_invalid, message.GetDescriptor()->name());
-		weak_assert(0);
+		weak_assert(false);
 		throw ISerializeProto::DeserializeError("WISE.WeatherProto.CwfgmWeatherStation: Protobuf object invalid", ERROR_PROTOBUF_OBJECT_INVALID);
 	}
 	if ((stream->version() != 1) && (stream->version() != 2))
 	{
 		if (valid)
 			valid->add_child_validation("WISE.WeatherProto.CwfgmWeatherStream", name, validation::error_level::SEVERE, validation::id::version_mismatch, message.GetDescriptor()->name());
-		weak_assert(0);
+		weak_assert(false);
 		throw ISerializeProto::DeserializeError("WISE.WeatherProto.CwfgmWeatherStation: Version is invalid", ERROR_PROTOBUF_OBJECT_VERSION_INVALID);
 	}
 

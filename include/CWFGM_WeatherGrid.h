@@ -125,7 +125,6 @@ public:
 		<li><code>CWFGM_WEATHER_OPTION_IDW_EXPONENT_FWI</code>  64-bit floating point.  Used when <code>CWFGM_SCENARIO_OPTION_WEATHER_INTERPOLATE_SPATIAL</code> is set.  IDW power for interpolating FWI values.
 		<li><code>CWFGM_WEATHER_OPTION_FFMC_VANWAGNER</code>		Boolean.  Use the Van Wagner approach to calculating HFFMC values
 		<li><code>CWFGM_WEATHER_OPTION_FFMC_LAWSON</code>		Boolean.  Use the Lawson approach to calculating HFFMC values
-		<li><code>CWFGM_WEATHER_OPTION_FFMC_HYBRID</code>		Boolean.  Do not use, only for experimental purposes.
 		</ul>
 		\param value	Location for the retrieved value to be placed.
 		\retval E_POINTER	value is NULL
@@ -187,7 +186,6 @@ public:
 		<li><code>CWFGM_WEATHER_OPTION_IDW_EXPONENT_FWI</code>  64-bit floating point.  Used when <code>CWFGM_SCENARIO_OPTION_WEATHER_INTERPOLATE_SPATIAL</code> is set.  IDW power for interpolating FWI values.
 		<li><code>CWFGM_WEATHER_OPTION_FFMC_VANWAGNER</code>		Boolean.  Use the Van Wagner approach to calculating HFFMC values
 		<li><code>CWFGM_WEATHER_OPTION_FFMC_LAWSON</code>		Boolean.  Use the Lawson approach to calculating HFFMC values
-		<li><code>CWFGM_WEATHER_OPTION_FFMC_HYBRID</code>		Boolean.  Do not use, only for experimental purposes.
 		</ul>
 		\param value	Location for the retrieved value to be placed.
 		\retval E_POINTER	value is NULL
