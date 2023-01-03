@@ -49,7 +49,6 @@ DailyWeather::DailyWeather(WeatherCondition *wc)
 	}
 
 	m_dblTempDiff = 0.0;
-	m_dblWSDiff = 0.0;
 }
 
 
@@ -330,7 +329,7 @@ bool DailyWeather::setHourlyWeather(const WTime& time, double temp, double rh, d
 	if (!(m_flags & DAY_HOURLY_SPECIFIED))
 		return false;
 	std::int32_t hour = time.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST);
-	return setHourlyWeather(hour, temp, rh, precip, gust, ws, wd, dew);
+	return setHourlyWeather(hour, temp, rh, precip, ws, gust, wd, dew);
 };
 
 
