@@ -150,7 +150,7 @@ public:
 	void SetEndTime(WTime &endTime);
 	void GetEndTime(WTime &EndTime);
 
-	__INLINE std::uint32_t NumDays() const				{ return m_readings.GetCount(); };
+	std::uint32_t NumDays() const				{ return m_readings.GetCount(); };
 
 	void calculateValues();
 

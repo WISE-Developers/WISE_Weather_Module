@@ -31,16 +31,16 @@ using namespace HSS_Time;
 class DailyWeather : public MinNode {
 	friend class CWFGM_WeatherStreamHelper;
 public:
-	__INLINE DailyWeather *LN_Succ() const			{ return (DailyWeather *)MinNode::LN_Succ(); };
-	__INLINE DailyWeather *LN_Pred() const			{ return (DailyWeather *)MinNode::LN_Pred(); };
+	DailyWeather *LN_Succ() const			{ return (DailyWeather *)MinNode::LN_Succ(); };
+	DailyWeather *LN_Pred() const			{ return (DailyWeather *)MinNode::LN_Pred(); };
 
 	DailyWeather(WeatherCondition *wc);
 	DailyWeather(const DailyWeather &toCopy, WeatherCondition *wc);
 
 	class WeatherCondition *m_weatherCondition;		// pointer to its owner, so we can ask for values for a different time, which
 								// may be in a different day
-	__INLINE DailyWeather *getYesterday() const		{ DailyWeather *dw = LN_Pred(); if (dw->LN_Pred()) return dw; return nullptr; };
-	__INLINE DailyWeather *getTomorrow() const		{ DailyWeather *dw = LN_Succ(); if (dw->LN_Succ()) return dw; return nullptr; };
+	DailyWeather *getYesterday() const		{ DailyWeather *dw = LN_Pred(); if (dw->LN_Pred()) return dw; return nullptr; };
+	DailyWeather *getTomorrow() const		{ DailyWeather *dw = LN_Succ(); if (dw->LN_Succ()) return dw; return nullptr; };
 
 	void GetEventTime(std::uint32_t flags, const WTime &from_time, WTime &next_event, bool look_ahead = false);
 
@@ -83,7 +83,7 @@ public:
 	double	m_daily_wd;					// daily conditions for us to work with
 
 protected:
-	__INLINE void hourlyWeather_Serialize(const std::uint32_t hour, double *temp, double *rh, double *precip, double *ws, double *wd, double *dew) const {
+	void hourlyWeather_Serialize(const std::uint32_t hour, double *temp, double *rh, double *precip, double *ws, double *wd, double *dew) const {
 		*temp = m_hourly_temp[hour];
 		*rh = m_hourly_rh[hour];
 		*precip = m_hourly_precip[hour];
@@ -104,7 +104,7 @@ public:
 	void	calculateRemainingHourlyConditions();
 	void	calculateDailyConditions();
 
-	__INLINE void hourlyWeather(const WTime &time, double *temp, double *rh, double *precip, double *ws, double *gust, double *wd, double *dew) const {
+	void hourlyWeather(const WTime &time, double *temp, double *rh, double *precip, double *ws, double *gust, double *wd, double *dew) const {
 										  std::int32_t hour = time.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST);
 										  *temp = m_hourly_temp[hour];
 										  *rh = m_hourly_rh[hour];
@@ -119,13 +119,13 @@ public:
 										  *wd = m_hourly_wd[hour];
 										  *dew = m_hourly_dewpt_temp[hour];
 										};
-	__INLINE double hourlyTemp(const WTime &time) const		{ return m_hourly_temp[time.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST)]; };
-	__INLINE double hourlyDewPtTemp(const WTime &t) const	{ return m_hourly_dewpt_temp[t.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST)]; };
-	__INLINE double hourlyRH(const WTime &time) const		{ return m_hourly_rh[time.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST)]; };
-	__INLINE double hourlyWS(const WTime &time) const		{ return m_hourly_ws[time.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST)]; };
-	__INLINE double hourlyGust(const WTime& time) const		{ return m_hourly_gust[time.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST)]; };
-	__INLINE double hourlyPrecip(const WTime &time) const	{ return m_hourly_precip[time.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST)]; };
-	__INLINE double hourlyWD(const WTime &time) const		{
+	double hourlyTemp(const WTime &time) const		{ return m_hourly_temp[time.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST)]; };
+	double hourlyDewPtTemp(const WTime &t) const	{ return m_hourly_dewpt_temp[t.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST)]; };
+	double hourlyRH(const WTime &time) const		{ return m_hourly_rh[time.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST)]; };
+	double hourlyWS(const WTime &time) const		{ return m_hourly_ws[time.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST)]; };
+	double hourlyGust(const WTime& time) const		{ return m_hourly_gust[time.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST)]; };
+	double hourlyPrecip(const WTime &time) const	{ return m_hourly_precip[time.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST)]; };
+	double hourlyWD(const WTime &time) const		{
 								  return m_hourly_wd[time.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST)];
 								};
 
@@ -155,7 +155,7 @@ public:
 
 	double dailyWD() const;
 
-	__INLINE void getDailyWeather(double *min_temp, double *max_temp, double *min_ws, double *max_ws, double* min_gust, double* max_gust, double *rh, double *precip, double *wd) const {
+	void getDailyWeather(double *min_temp, double *max_temp, double *min_ws, double *max_ws, double* min_gust, double* max_gust, double *rh, double *precip, double *wd) const {
 										  *min_temp = dailyMinTemp();
 										  *max_temp = dailyMaxTemp();
 										  *min_ws = dailyMinWS();
@@ -166,7 +166,7 @@ public:
 										  *precip = dailyPrecip();
 										  *wd = dailyWD();
 										};
-	__INLINE bool setDailyWeather(double min_temp, double max_temp, double min_ws, double max_ws, double min_gust, double max_gust, double rh, double precip, double wd) {
+	bool setDailyWeather(double min_temp, double max_temp, double min_ws, double max_ws, double min_gust, double max_gust, double rh, double precip, double wd) {
 										  if (m_flags & DAY_HOURLY_SPECIFIED)
 											  return false;
 										  m_daily_min_temp = (float)min_temp;
@@ -195,13 +195,13 @@ public:
 	double	m_SunsetTemp;
 	double m_dblTempDiff;
 
-	__INLINE double sin_function(const WTime &t) const;
+	double sin_function(const WTime &t) const;
 
-	__INLINE double exp_function(const WTime &t) const;
-	__INLINE double exp_WindFunc(const WTime &t) const;
+	double exp_function(const WTime &t) const;
+	double exp_WindFunc(const WTime &t) const;
 
 
-	__INLINE double QT0(double vpt0, double MaxTemp)		{ return (217.0 * vpt0)/(273.17+MaxTemp); };
+	double QT0(double vpt0, double MaxTemp)		{ return (217.0 * vpt0)/(273.17+MaxTemp); };
 
 	void calculateWD();
 	void calculatePrecip();

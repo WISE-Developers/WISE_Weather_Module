@@ -495,7 +495,7 @@ public:
 	virtual NO_THROW HRESULT PutCommonData(Layer* layerThread, ICWFGM_CommonData* pVal) override;
 
 #ifndef DOXYGEN_IGNORE_CODE
-		__INLINE std::uint32_t ArrayIndex(std::uint16_t x, std::uint16_t y)
+		std::uint32_t ArrayIndex(std::uint16_t x, std::uint16_t y)
 		{
 			if ((m_ysize == (std::uint16_t)-1) && (m_xsize == (std::uint16_t)-1)) {
 				m_gridEngine(nullptr)->GetDimensions(0, &m_xsize, &m_ysize);
@@ -525,8 +525,8 @@ protected:
 
 	std::uint16_t convertX(double x, XY_Rectangle *bbox);
 	std::uint16_t convertY(double y, XY_Rectangle *bbox);
-	__INLINE double invertX(double x)			{ return x * m_resolution + m_xllcorner; }
-	__INLINE double invertY(double y)			{ return y * m_resolution + m_yllcorner; }
+	double invertX(double x)			{ return x * m_resolution + m_xllcorner; }
+	double invertY(double y)			{ return y * m_resolution + m_yllcorner; }
 	HRESULT fixResolution();
 
 public:
