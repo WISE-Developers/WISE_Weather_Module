@@ -1195,7 +1195,7 @@ HRESULT CCWFGM_WeatherGrid::GetRawWxValues(ICWFGM_GridEngine *grid, Layer *layer
 							wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDSPEED;
 						}
 						if (fabs(gust - wx->WindGust) > 1e-7) {
-							weak_assert(0);
+							weak_assert(false);;
 							wx->WindGust = gust;
 							wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDGUST;
 						}
@@ -1228,7 +1228,7 @@ HRESULT CCWFGM_WeatherGrid::GetRawWxValues(ICWFGM_GridEngine *grid, Layer *layer
 						wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDSPEED;
 					}
 					if (wx->WindGust != nearest_gust) {
-						weak_assert(0);
+						weak_assert(false);;
 						wx->WindGust = nearest_gust;
 						wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDGUST;
 					}
