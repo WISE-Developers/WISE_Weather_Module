@@ -49,7 +49,7 @@ public:
 	defined rules.  \n\n This object will also update any FWI calculations required based on options and input values. \n\n No weather streams or
 	weather stations are associated with this object since it simply updates and replaces weather values based on the patch rules.
 */
-class WEATHERCOM_API CCWFGM_WeatherGridFilter : public ICWFGM_GridEngine, /*public ISerializeXMLStream,*/ public ISerializeProto {
+class WEATHERCOM_API CCWFGM_WeatherGridFilter : public ICWFGM_GridEngine, public ISerializeProto {
 
 #ifndef DOXYGEN_IGNORE_CODE
 public:

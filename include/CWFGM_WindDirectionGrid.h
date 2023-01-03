@@ -23,7 +23,6 @@
 #include "WTime.h"
 #include "WindGrid.h"
 #include "ICWFGM_GridEngine.h"
-//#include "ISerializeXMLStream.h"
 #include "semaphore.h"
 #include "ISerializeProto.h"
 #include "windGrid.pb.h"
@@ -35,7 +34,6 @@ using namespace HSS_Time;
 #endif
 
 
-#define CWFGM_WINDDIRECTION_GRID_VERSION	11
 #ifndef DOXYGEN_IGNORE_CODE
 struct direction_entry
 {
@@ -165,7 +163,7 @@ class NewDirectionSector : public Sector
 	defined rules.  \n\n This object will also update any FWI calculations required based on options and input values. \n\n No weather streams or
 	weather stations are associated with this object since it simply updates and replaces wind direction values based on the grid rules.
 */
-class WEATHERCOM_API CCWFGM_WindDirectionGrid : public ICWFGM_GridEngine, /*public ISerializeXMLStream,*/ public ISerializeProto {
+class WEATHERCOM_API CCWFGM_WindDirectionGrid : public ICWFGM_GridEngine, public ISerializeProto {
 
 public:
 #ifndef DOXYGEN_IGNORE_CODE

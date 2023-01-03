@@ -161,7 +161,7 @@ class SpeedSector : public Sector
 	defined rules.  \n\n This object will also update any FWI calculations required based on options and input values. \n\n No weather streams or
 	weather stations are associated with this object since it simply updates and replaces wind speed values based on the grid rules.
 */
-class WEATHERCOM_API CCWFGM_WindSpeedGrid : public ICWFGM_GridEngine, /*public ISerializeXMLStream,*/ public ISerializeProto {
+class WEATHERCOM_API CCWFGM_WindSpeedGrid : public ICWFGM_GridEngine, public ISerializeProto {
 
 public:
 #ifndef DOXYGEN_IGNORE_CODE
