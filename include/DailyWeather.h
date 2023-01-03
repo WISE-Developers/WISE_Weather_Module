@@ -194,8 +194,6 @@ public:
 
 	double	m_SunsetTemp;
 	double m_dblTempDiff;
-	double m_dblWSDiff;
-	double m_dblGustDiff;
 
 	__INLINE double sin_function(const WTime &t) const;
 
