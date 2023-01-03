@@ -50,8 +50,10 @@ public:
 		#define DAY_ORIGIN_FILE				0x00000002
 		#define DAY_ORIGIN_ENSEMBLE			0x00000004
 		#define DAY_ORIGIN_MODIFIED			0x00000008
+		#define DAY_GUST_SPECIFIED			0x00000010
 
 		#define HOUR_DEWPT_SPECIFIED		0x04
+		#define HOUR_GUST_SPECIFIED			0x02
 
 	WTime	m_DayStart,
 		m_SunRise,					// variables used in calculateHourlyConditions()
@@ -66,6 +68,7 @@ public:
 		m_hourly_dewpt_temp[24],
 		m_hourly_rh[24],
 		m_hourly_ws[24],
+		m_hourly_gust[24],
 		m_hourly_precip[24];
 	double	m_hourly_wd[24];				// hourly conditions that may be given or calculated from daily values
 
@@ -73,16 +76,24 @@ public:
 		m_daily_max_temp,
 		m_daily_min_ws,
 		m_daily_max_ws,
+		m_daily_min_gust,
+		m_daily_max_gust,
 		m_daily_rh,
 		m_daily_precip;
 	double	m_daily_wd;					// daily conditions for us to work with
 
 protected:
-	__INLINE void hourlyWeather_Serialize(const std::uint32_t hour, double *temp, double *rh, double *precip, double *ws, double *wd, double *dew) const {
+	__INLINE void hourlyWeather_Serialize(const std::uint32_t hour, double *temp, double *rh, double *precip, double *ws, double *gust, double *wd, double *dew) const {
 		*temp = m_hourly_temp[hour];
 		*rh = m_hourly_rh[hour];
 		*precip = m_hourly_precip[hour];
 		*ws = m_hourly_ws[hour];
+		if (gust) {
+			if (m_hflags[hour] & HOUR_GUST_SPECIFIED)
+				*gust = m_hourly_gust[hour];
+			else
+				*gust = -1.0;
+		}
 		*wd = m_hourly_wd[hour];
 		*dew = m_hourly_dewpt_temp[hour];
 	};
@@ -93,12 +104,18 @@ public:
 	void	calculateRemainingHourlyConditions();
 	void	calculateDailyConditions();
 
-	__INLINE void hourlyWeather(const WTime &time, double *temp, double *rh, double *precip, double *ws, double *wd, double *dew) const {
+	__INLINE void hourlyWeather(const WTime &time, double *temp, double *rh, double *precip, double *ws, double *gust, double *wd, double *dew) const {
 										  std::int32_t hour = time.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST);
 										  *temp = m_hourly_temp[hour];
 										  *rh = m_hourly_rh[hour];
 										  *precip = m_hourly_precip[hour];
 										  *ws = m_hourly_ws[hour];
+										  if (gust) {
+											  if (m_hflags[hour] & HOUR_GUST_SPECIFIED)
+												  *gust = m_hourly_gust[hour];
+											  else
+												  *gust = -1.0;
+										  }
 										  *wd = m_hourly_wd[hour];
 										  *dew = m_hourly_dewpt_temp[hour];
 										};
@@ -106,16 +123,17 @@ public:
 	__INLINE double hourlyDewPtTemp(const WTime &t) const	{ return m_hourly_dewpt_temp[t.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST)]; };
 	__INLINE double hourlyRH(const WTime &time) const		{ return m_hourly_rh[time.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST)]; };
 	__INLINE double hourlyWS(const WTime &time) const		{ return m_hourly_ws[time.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST)]; };
+	__INLINE double hourlyGust(const WTime& time) const		{ return m_hourly_gust[time.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST)]; };
 	__INLINE double hourlyPrecip(const WTime &time) const	{ return m_hourly_precip[time.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST)]; };
 	__INLINE double hourlyWD(const WTime &time) const		{
 								  return m_hourly_wd[time.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST)];
 								};
 
-	bool setHourlyWeather(const WTime &time, double temp, double rh, double precip, double ws, double wd, double dew);
+	bool setHourlyWeather(const WTime &time, double temp, double rh, double precip, double ws, double gust, double wd, double dew);
 	bool setHourlyPrecip(const WTime& time, double precip);
 
 protected:
-	bool setHourlyWeather(std::int32_t hour, double temp, double rh, double precip, double ws, double wd, double dew);
+	bool setHourlyWeather(std::int32_t hour, double temp, double rh, double precip, double ws, double gust, double wd, double dew);
 	bool setHourlyPrecip(std::int32_t hour, double precip);
 
 public:
@@ -126,6 +144,9 @@ public:
 	double dailyMinWS() const;
 	double dailyMaxWS() const;
 
+	double dailyMinGust() const;
+	double dailyMaxGust() const;
+
 	double dailyMinRH() const;
 	double dailyMeanRH() const;
 	double dailyMaxRH() const;
@@ -134,22 +155,26 @@ public:
 
 	double dailyWD() const;
 
-	__INLINE void getDailyWeather(double *min_temp, double *max_temp, double *min_ws, double *max_ws, double *rh, double *precip, double *wd) const {
+	__INLINE void getDailyWeather(double *min_temp, double *max_temp, double *min_ws, double *max_ws, double* min_gust, double* max_gust, double *rh, double *precip, double *wd) const {
 										  *min_temp = dailyMinTemp();
 										  *max_temp = dailyMaxTemp();
 										  *min_ws = dailyMinWS();
 										  *max_ws = dailyMaxWS();
+										  *min_gust = dailyMinGust();
+										  *max_gust = dailyMaxGust();
 										  *rh = dailyMinRH();
 										  *precip = dailyPrecip();
 										  *wd = dailyWD();
 										};
-	__INLINE bool setDailyWeather(double min_temp, double max_temp, double min_ws, double max_ws, double rh, double precip, double wd) {
-										  if (m_flags & DAY_HOURLY_SPECIFIED)
+	__INLINE bool setDailyWeather(double min_temp, double max_temp, double min_ws, double max_ws, double min_gust, double max_gust, double rh, double precip, double wd) {
+										  if (m_flags & DAY_HOURLY_SPECIFIED/*m_isHourlySpecified*/)
 											  return false;
 										  m_daily_min_temp = (float)min_temp;
 										  m_daily_max_temp = (float)max_temp;
 										  m_daily_min_ws = (float)min_ws;
 										  m_daily_max_ws = (float)max_ws;
+										  m_daily_min_gust = (float)min_gust;
+										  m_daily_max_gust = (float)max_gust;
 										  m_daily_rh = (float)rh;
 										  m_daily_precip = (float)precip;
 										  m_daily_wd = wd;
@@ -170,6 +195,7 @@ public:
 	double	m_SunsetTemp;
 	double m_dblTempDiff;
 	double m_dblWSDiff;
+	double m_dblGustDiff;
 
 	__INLINE double sin_function(const WTime &t) const;
 
@@ -184,6 +210,7 @@ public:
 	std::uint16_t calculateTemp();
 	void calculateRH();
 	std::uint16_t calculateWS();
+	std::uint16_t calculateGust();
 	void calculateDewPtTemp();
 };
 

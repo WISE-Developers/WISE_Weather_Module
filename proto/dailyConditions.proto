@@ -40,6 +40,8 @@ message DailyConditions {
         Math.Double precip = 5;
         Math.Double rh = 6;
         Math.Double wd = 7;
+        optional Math.Double minGust = 8;
+        optional Math.Double maxGust = 9;
     }
 
     message DayHourWeather {
@@ -54,6 +56,7 @@ message DailyConditions {
         Math.Double temp = 5;
         Math.Double wd = 6;
         Math.Double ws = 7;
+        optional Math.Double gust = 8;
     }
 
     message SpecHour {

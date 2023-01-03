@@ -283,13 +283,15 @@ public class NoonWeatherCondition {
 					OutVariable<Double> rh = new OutVariable<Double>();
 					rh .value = -100.0;
 					OutVariable<Double> ws = new OutVariable<Double>();
-					ws .value =  -100.0;
+					ws.value =  -100.0;
+					OutVariable<Double> wg = new OutVariable<Double>();
+					wg.value =  -100.0;
 					OutVariable<Double> wd = new OutVariable<Double>();
 					wd.value = -100.0;
 					OutVariable<Double> precip = new OutVariable<Double>();
 					precip.value = -100.0;
 	
-					file_type = fillDailyLineValue(header, line, temp, rh, ws, wd, precip);
+					file_type = fillDailyLineValue(header, line, temp, rh, ws, wg, wd, precip);
 	
 					if ((wd.value < 0.0) || (wd.value > 360.0) ||
 					    (ws.value < 0.0) ||
@@ -338,7 +340,7 @@ public class NoonWeatherCondition {
 						hr = ERROR.ATTEMPT_APPEND;
 						break;
 					}
-					nw.setNoonWeather(temp.value, rh.value, ws.value, wd.value, precip.value);
+					nw.setNoonWeather(temp.value, rh.value, ws.value, wg.value, wd.value, precip.value);
 					lines++;
 				}
 			}
@@ -393,10 +395,11 @@ public class NoonWeatherCondition {
 	}
 
 	private void distributeDailyValue(List<String> header, int index, double value, OutVariable<Double> temp, OutVariable<Double> rh,
-			OutVariable<Double> ws, OutVariable<Double> wd, OutVariable<Double> precip) {
+			OutVariable<Double> ws, OutVariable<Double> wg, OutVariable<Double> wd, OutVariable<Double> precip) {
 		assert temp != null;
 		assert rh != null;
 		assert ws != null;
+		assert wg != null;
 		assert wd != null;
 		assert precip != null;
 		if(index > header.size() - 1 || index<0)
@@ -408,6 +411,8 @@ public class NoonWeatherCondition {
 			rh.value = value;
 		else if (str.compareToIgnoreCase("ws") == 0)
 			ws.value = value;
+		else if (str.compareToIgnoreCase("wg") == 0 || str.compareToIgnoreCase("gust") == 0 || str.compareToIgnoreCase("gusting") == 0 || str.compareToIgnoreCase("wind_gust") == 0 || str.compareToIgnoreCase("windgust") == 0)
+			wg.value = value;
 		else if (str.compareToIgnoreCase("wd") == 0 || str.compareToIgnoreCase("dir") == 0 || str.compareToIgnoreCase("wind_direction") == 0)
 			wd.value = value;
 		else if ((str.compareToIgnoreCase("precip") == 0) || (str.compareToIgnoreCase("rain") == 0) || str.compareToIgnoreCase("precipitation") == 0)
@@ -415,10 +420,11 @@ public class NoonWeatherCondition {
 	}
 
 	private String fillDailyLineValue(List<String> header, String line, OutVariable<Double> temp, OutVariable<Double> rh,
-			OutVariable<Double> ws, OutVariable<Double> wd, OutVariable<Double> precip) {
+			OutVariable<Double> ws, OutVariable<Double> wg, OutVariable<Double> wd, OutVariable<Double> precip) {
 		assert temp != null;
 		assert rh != null;
 		assert ws != null;
+		assert wg != null;
 		assert wd != null;
 		assert precip != null;
 		int i=0;
@@ -436,7 +442,7 @@ public class NoonWeatherCondition {
 			dat = dat.replaceAll("[\"\']+", "");
 			
 			double ReadIn = Double.parseDouble(dat);
-			distributeDailyValue(header, ++i, ReadIn, temp, rh, ws, wd, precip);
+			distributeDailyValue(header, ++i, ReadIn, temp, rh, ws, wg, wd, precip);
 		}
 		return retVal;
 	}
@@ -472,16 +478,17 @@ public class NoonWeatherCondition {
 	}
 
 	public boolean getNoonWeatherValues(WTime time, OutVariable<Double> temp, OutVariable<Double> dew,
-			OutVariable<Double> rh, OutVariable<Double> ws, OutVariable<Double> wd, OutVariable<Double> precip) {
+			OutVariable<Double> rh, OutVariable<Double> ws, OutVariable<Double> wg, OutVariable<Double> wd, OutVariable<Double> precip) {
 		assert temp != null;
 		assert rh != null;
 		assert ws != null;
+		assert wg != null;
 		assert wd != null;
 		assert precip != null;
 		NoonWeather nw = getNWReading(time, false);
 		if (nw != null) {
 			calculateValues();
-			nw.getNoonWeather(temp, dew, rh, ws, wd, precip);
+			nw.getNoonWeather(temp, dew, rh, ws, wg, wd, precip);
 		}
 		return (nw != null);
 	}
@@ -502,10 +509,10 @@ public class NoonWeatherCondition {
 		return (nw != null);
 	}
 
-	public boolean setNoonWeatherValues(WTime time, double temp, double rh, double ws, double wd, double precip) {
+	public boolean setNoonWeatherValues(WTime time, double temp, double rh, double ws, double wg, double wd, double precip) {
 		NoonWeather dc = getNWReading(time, true);
 		if (dc != null) {
-			dc.setNoonWeather(temp, rh, ws, wd, precip);
+			dc.setNoonWeather(temp, rh, ws, wg, wd, precip);
 			clearConditions();
 		}
 		return (dc != null);

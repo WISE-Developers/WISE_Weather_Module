@@ -177,7 +177,7 @@ void WeatherCondition::calculateValues() {
 	if (!(dc->m_flags & DAY_HOURLY_SPECIFIED)) {
 		fakeLast = new DailyCondition(this);
 		m_readings.AddTail(fakeLast);
-		fakeLast->setDailyWeather(dc->dailyMinTemp(), dc->dailyMaxTemp(), dc->dailyMinWS(), dc->dailyMaxWS(), dc->dailyMeanRH(), dc->dailyPrecip(), dc->dailyWD());
+		fakeLast->setDailyWeather(dc->dailyMinTemp(), dc->dailyMaxTemp(), dc->dailyMinWS(), dc->dailyMaxWS(), dc->dailyMinGust(), dc->dailyMaxGust(), dc->dailyMeanRH(), dc->dailyPrecip(), dc->dailyWD());
 	}
 
 	std::uint16_t i = 0;
@@ -216,32 +216,34 @@ HSS_PRAGMA_WARNING_POP
 }
 
 
-bool WeatherCondition::GetDailyWeatherValues(const WTime &time, double *min_temp, double *max_temp, double *min_ws, double *max_ws, double *min_rh, double *precip, double *wd) {
+bool WeatherCondition::GetDailyWeatherValues(const WTime &time, double *min_temp, double *max_temp, double *min_ws, double *max_ws, double* min_gust, double* max_gust, double *min_rh, double *precip, double *wd) {
 	DailyCondition *dc = getDCReading(time, false);
 	if (dc) {
 		calculateValues();
-		dc->getDailyWeather(min_temp, max_temp, min_ws, max_ws, min_rh, precip, wd);
+		dc->getDailyWeather(min_temp, max_temp, min_ws, max_ws, min_gust, max_gust, min_rh, precip, wd);
 	}
 	return (dc != NULL);
 }
 
 
-bool WeatherCondition::SetDailyWeatherValues(const WTime &time, double min_temp, double max_temp, double min_ws, double max_ws, double min_rh, double precip, double wd) {
+bool WeatherCondition::SetDailyWeatherValues(const WTime &time, double min_temp, double max_temp, double min_ws, double max_ws, double min_gust, double max_gust, double min_rh, double precip, double wd) {
 
 	DailyCondition *dc = getDCReading(time, true);
 	if (dc) {
 		if (dc->m_flags & DAY_HOURLY_SPECIFIED)
 			return false;
 
-		double min_temp2, max_temp2, min_ws2, max_ws2, min_rh2, precip2, wd2;
-		double min_temp3, max_temp3, min_ws3, max_ws3, min_rh3, precip3, wd3;
-		dc->getDailyWeather(&min_temp2, &max_temp2, &min_ws2, &max_ws2, &min_rh2, &precip2, &wd2);
-		dc->setDailyWeather(min_temp, max_temp, min_ws, max_ws, min_rh, precip, wd);
-		dc->getDailyWeather(&min_temp3, &max_temp3, &min_ws3, &max_ws3, &min_rh3, &precip3, &wd3);	// we are converting between data types so I'm trying to deal with rounding errors from those conversions
+		double min_temp2, max_temp2, min_ws2, max_ws2, min_gust2, max_gust2, min_rh2, precip2, wd2;
+		double min_temp3, max_temp3, min_ws3, max_ws3, min_gust3, max_gust3, min_rh3, precip3, wd3;
+		dc->getDailyWeather(&min_temp2, &max_temp2, &min_ws2, &max_ws2, &min_gust2, &max_gust2, &min_rh2, &precip2, &wd2);
+		dc->setDailyWeather(min_temp, max_temp, min_ws, max_ws, min_gust, max_gust, min_rh, precip, wd);
+		dc->getDailyWeather(&min_temp3, &max_temp3, &min_ws3, &max_ws3, &min_gust3, &max_gust3, &min_rh3, &precip3, &wd3);	// we are converting between data types so I'm trying to deal with rounding errors from those conversions
 		if ((fabs(min_temp2 - min_temp3) > 1e-5) ||
 			(fabs(max_temp2 - max_temp3) > 1e-5) ||
 			(fabs(min_ws2 - min_ws3) > 1e-5) ||
 			(fabs(max_ws2 - max_ws3) > 1e-5) ||
+			(fabs(min_gust2 - min_gust3) > 1e-5) ||
+			(fabs(max_gust2 - max_gust3) > 1e-5) ||
 			(fabs(min_rh2 - min_rh3) > 1e-5) ||
 			(fabs(precip2 - precip3) > 1e-5) ||
 			(fabs(wd2 - wd3) > 1e-5))
@@ -260,17 +262,17 @@ double WeatherCondition::GetHourlyRain(const WTime &time) {
 }
 
 
-bool WeatherCondition::SetHourlyWeatherValues(const WTime &time, double temp, double rh, double precip, double ws, double wd, double dew) {
-	return SetHourlyWeatherValues(time, temp, rh, precip, ws, wd, dew, false);
+bool WeatherCondition::SetHourlyWeatherValues(const WTime &time, double temp, double rh, double precip, double ws, double gust, double wd, double dew) {
+	return SetHourlyWeatherValues(time, temp, rh, precip, ws, gust, wd, dew, false);
 }
 
 
-bool WeatherCondition::SetHourlyWeatherValues(const WTime& time, double temp, double rh, double precip, double ws, double wd, double dew, bool interp) {
-	return SetHourlyWeatherValues(time, temp, rh, precip, ws, wd, dew, interp, false);
+bool WeatherCondition::SetHourlyWeatherValues(const WTime& time, double temp, double rh, double precip, double ws, double gust, double wd, double dew, bool interp) {
+	return SetHourlyWeatherValues(time, temp, rh, precip, ws, gust, wd, dew, interp, false);
 }
 
 
-bool WeatherCondition::SetHourlyWeatherValues(const WTime &time, double temp, double rh, double precip, double ws, double wd, double dew, bool interp, bool ensemble) {
+bool WeatherCondition::SetHourlyWeatherValues(const WTime &time, double temp, double rh, double precip, double ws, double gust, double wd, double dew, bool interp, bool ensemble) {
 	DailyCondition *dc = getDCReading(time, true);
 	if (dc) {
 		if (!(dc->m_flags & DAY_HOURLY_SPECIFIED))
@@ -287,15 +289,16 @@ bool WeatherCondition::SetHourlyWeatherValues(const WTime &time, double temp, do
 		else if (time.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST) < m_lastHour && (m_readings.GetCount() < 2 || diff.GetTotalHours() == -23))
 			m_lastHour = time.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST);
 
-		double temp2, rh2, precip2, ws2, wd2, dew2;
-		double temp3, rh3, precip3, ws3, wd3, dew3;
-		dc->hourlyWeather(time, &temp2, &rh2, &precip2, &ws2, &wd2, &dew2);
-		dc->setHourlyWeather(time, temp, rh, precip, ws, wd, dew);
-		dc->hourlyWeather(time, &temp3, &rh3, &precip3, &ws3, &wd3, &dew3);
+		double temp2, rh2, precip2, ws2, gust2, wd2, dew2;
+		double temp3, rh3, precip3, ws3, gust3, wd3, dew3;
+		dc->hourlyWeather(time, &temp2, &rh2, &precip2, &ws2, &gust2, &wd2, &dew2);
+		dc->setHourlyWeather(time, temp, rh, precip, ws, gust, wd, dew);
+		dc->hourlyWeather(time, &temp3, &rh3, &precip3, &ws3, &gust3, &wd3, &dew3);
 		if ((fabs(temp2 - temp3) > 1e-5) ||
 			(fabs(rh2 - rh3) > 1e-5) ||
 			(fabs(precip2 - precip3) > 1e-5) ||
 			(fabs(ws2 - ws3) > 1e-5) ||
+			(fabs(gust2 - gust3) > 1e-5) ||
 			(fabs(wd2 - wd3) > 1e-5) ||
 			(fabs(dew2 - dew3) > 1e-5)) {
 			m_options &= (~(USER_SPECIFIED));
@@ -482,11 +485,13 @@ bool WeatherCondition::GetInstantaneousValues(const WTime &time, std::uint32_t m
 	if ((!dc1) || (!dc2) || (nt1 == time) || (!(method & CWFGM_GETWEATHER_INTERPOLATE_TEMPORAL))) {
 		if (dc1) {
 			if (wx) {
-				dc1->hourlyWeather(time, &wx->Temperature, &wx->RH, &wx->Precipitation, &wx->WindSpeed, &wx->WindDirection, &wx->DewPointTemperature);
+				dc1->hourlyWeather(time, &wx->Temperature, &wx->RH, &wx->Precipitation, &wx->WindSpeed, &wx->WindGust, &wx->WindDirection, &wx->DewPointTemperature);
 				if (method & CWFGM_GETWEATHER_INTERPOLATE_TEMPORAL)		// if temporal interp is turned on...
 					if ((!dc2) && (nt1 != time))				// and we don't have a reading for the next day AND we were asking for some time other than 11pm
 						wx->Precipitation = 0.0;
-				wx->SpecifiedBits = IWXDATA_SPECIFIED_TEMPERATURE | IWXDATA_SPECIFIED_RH | IWXDATA_SPECIFIED_PRECIPITATION | IWXDATA_SPECIFIED_WINDSPEED | IWXDATA_SPECIFIED_WINDDIRECTION;
+				wx->SpecifiedBits = IWXDATA_SPECIFIED_TEMPERATURE | IWXDATA_SPECIFIED_RH | IWXDATA_SPECIFIED_PRECIPITATION | IWXDATA_SPECIFIED_WINDSPEED | IWXDATA_SPECIFIED_WINDDIRECTION | IWXDATA_SPECIFIED_DEWPOINTTEMPERATURE;
+				if (wx->WindGust >= 0.0)
+					wx->SpecifiedBits |= IWXDATA_SPECIFIED_WINDGUST;
 				if (dc1->isTimeInterpolated(time))
 					wx->SpecifiedBits |= IWXDATA_SPECIFIED_INTERPOLATED;
 			}
@@ -541,10 +546,10 @@ bool WeatherCondition::GetInstantaneousValues(const WTime &time, std::uint32_t m
 		rh1 = rh2 = wx->RH;
 	} else {
 		weak_assert(dc1);
-		double t1, p1, ws1, wd1, dew1;
-		double t2, p2, ws2, wd2, dew2;
-		dc1->hourlyWeather(nt1, &t1, &rh1, &p1, &ws1, &wd1, &dew1);
-		dc2->hourlyWeather(nt2, &t2, &rh2, &p2, &ws2, &wd2, &dew2);
+		double t1, p1, ws1, wd1, gust1, dew1;
+		double t2, p2, ws2, wd2, gust2, dew2;
+		dc1->hourlyWeather(nt1, &t1, &rh1, &p1, &ws1, &gust1, &wd1, &dew1);
+		dc2->hourlyWeather(nt2, &t2, &rh2, &p2, &ws2, &gust2, &wd2, &dew2);
 		perc2 = ((double)(time.GetTime(0) - nt1.GetTime(0))) / 3600.0;
 		perc1 = 1.0 - perc2;
 
@@ -944,11 +949,13 @@ void WeatherCondition::CopyDailyCondition(WTime &source, WTime &dest)
 	double max_temp;
 	double min_ws;
 	double max_ws;
+	double min_gust;
+	double max_gust;
 	double rh;
 	double precip;
 	double wd;
-	GetDailyWeatherValues(source, &min_temp, &max_temp, &min_ws, &max_ws, &rh, &precip, &wd);
-	SetDailyWeatherValues(dest,min_temp,max_temp,min_ws,max_ws,rh,precip,wd);
+	GetDailyWeatherValues(source, &min_temp, &max_temp, &min_ws, &max_ws, &min_gust, &max_gust, &rh, &precip, &wd);
+	SetDailyWeatherValues(dest,min_temp,max_temp,min_ws,max_ws,min_gust,max_gust,rh,precip,wd);
 }
 
 
@@ -1039,13 +1046,13 @@ HSS_PRAGMA_WARNING_POP
 				if (!(line[0]))
 					continue;
 				_tcscat_s(line, 255, _T("\n"));
-				double min_temp=-100, max_temp=-100, min_ws=-100, max_ws=-100, rh=-100, precip=-100, wd=-100;
+				double min_temp=-100, max_temp=-100, min_ws=-100, max_ws=-100, min_gust = -100, max_gust = -100, rh=-100, precip=-100, wd=-100;
 
-				FillDailyLineValue(header, line,file_type, &min_temp,&max_temp,&rh,&precip,&min_ws,&max_ws,&wd);
+				FillDailyLineValue(header, line,file_type, &min_temp,&max_temp,&rh,&precip,&min_ws,&max_ws,&min_gust,&max_gust,&wd);
 
 				if ((wd < 0.0) || (wd > 360.0) ||
 				    (min_ws < 0.0) || (max_ws < 0.0) ||
-				    (rh < 0.0) || (rh > 100.0) ||
+					(rh < 0.0) || (rh > 100.0) ||
 				    (precip < 0.0) ||
 				    (min_temp < -50.0) || (min_temp > 60.0) ||
 				    (max_temp < -50.0) || (max_temp > 60.0)) {
@@ -1108,8 +1115,14 @@ HSS_PRAGMA_WARNING_POP
 					min_ws = max_ws;
 					max_ws = ttt;
 				}
+				if (min_gust > max_gust)
+				{
+					double ttt = min_gust;
+					min_gust = max_gust;
+					max_gust = ttt;
+				}
 
-				dc->setDailyWeather(min_temp, max_temp, min_ws, max_ws, rh, precip, wd);
+				dc->setDailyWeather(min_temp, max_temp, min_ws, max_ws, min_gust, max_gust, rh, precip, wd);
 				lines++;
 			}
 		} else if (mode == 2) {
@@ -1272,7 +1285,7 @@ HSS_PRAGMA_WARNING_POP
 				}
 				
 				m_lastHour = hour;
-				dc->setHourlyWeather(t, w.temp, w.rh, w.precip, w.ws, w.wd, -300.0);
+				dc->setHourlyWeather(t, w.temp, w.rh, w.precip, w.ws, w.wg, w.wd, -300.0);
 				lines++;
 			}
 
@@ -1359,7 +1372,7 @@ int WeatherCondition::GetWord(std::string *source, std::string *strWord)
 }
 
 
-void WeatherCondition::FillDailyLineValue(std::vector<std::string> &header, char *line, char *file_type,double *min_temp, double *max_temp, double *rh, double *precip, double *min_ws, double *max_ws, double *wd)
+void WeatherCondition::FillDailyLineValue(std::vector<std::string> &header, char *line, char *file_type,double *min_temp, double *max_temp, double *rh, double *precip, double *min_ws, double *max_ws, double* min_gust, double* max_gust, double *wd)
 {
 	int i=0;
 	char *context;
@@ -1373,11 +1386,11 @@ void WeatherCondition::FillDailyLineValue(std::vector<std::string> &header, char
 
 		strcpy_strip_s(dat, _tcslen(dat) + 1, dat, _T("\"\'"));
 		double ReadIn=_tstof(dat);
-		DistributeDailyValue(header, ++i,ReadIn,min_temp,max_temp,rh,precip,min_ws,max_ws,wd);
+		DistributeDailyValue(header, ++i,ReadIn,min_temp,max_temp,rh,precip,min_ws,max_ws,min_gust,max_gust,wd);
 	}
 }
 
-void WeatherCondition::DistributeDailyValue(std::vector<std::string> &header, int index, double value, double *min_temp, double *max_temp, double *rh, double *precip, double *min_ws, double *max_ws, double *wd)
+void WeatherCondition::DistributeDailyValue(std::vector<std::string> &header, int index, double value, double *min_temp, double *max_temp, double *rh, double *precip, double *min_ws, double *max_ws, double *min_gust, double *max_gust, double *wd)
 {
 HSS_PRAGMA_WARNING_PUSH
 HSS_PRAGMA_GCC(GCC diagnostic ignored "-Wsign-compare")
@@ -1397,6 +1410,10 @@ HSS_PRAGMA_WARNING_POP
 		*min_ws=value;
 	else if (boost::iequals(str, _T("max_ws")))
 		*max_ws=value;
+	else if (boost::iequals(str, _T("min_gust")))
+		*min_gust = value;
+	else if (boost::iequals(str, _T("max_gust")))
+		*max_gust = value;
 	else if ((boost::iequals(str, _T("precip"))) || (boost::iequals(str, _T("rain"))) || boost::iequals(str, _T("precipitation")))
 		*precip=value;
 }

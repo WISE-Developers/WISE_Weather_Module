@@ -592,9 +592,9 @@ HRESULT CCWFGM_WeatherStream::GetDailyValues(const HSS_Time::WTime &time, double
 	if (!engaged)
 		engage.Lock(m_lock.CurrentState() < 1000000LL);
 
-	double MIN_TEMP, MAX_TEMP, MIN_WS, MAX_WS, RH, PRECIP;
+	double MIN_TEMP, MAX_TEMP, MIN_WS, MAX_WS, MIN_GUST, MAX_GUST, RH, PRECIP;
 	WTime t(time, &m_weatherCondition.m_timeManager);
-	bool b = m_weatherCondition.GetDailyWeatherValues(t, &MIN_TEMP, &MAX_TEMP, &MIN_WS, &MAX_WS, &RH, &PRECIP, wa);
+	bool b = m_weatherCondition.GetDailyWeatherValues(t, &MIN_TEMP, &MAX_TEMP, &MIN_WS, &MAX_WS, &MIN_GUST, &MAX_GUST, &RH, &PRECIP, wa);
 	if (!b)									return ERROR_SEVERITY_WARNING;
 	*min_temp = MIN_TEMP;
 	*max_temp = MAX_TEMP;
@@ -630,7 +630,8 @@ HRESULT CCWFGM_WeatherStream::SetDailyValues(const HSS_Time::WTime &time, double
 	if (!engaged)								return ERROR_SCENARIO_SIMULATION_RUNNING;
 
 	WTime t(time, &m_weatherCondition.m_timeManager);
-	bool b = m_weatherCondition.SetDailyWeatherValues(t, min_temp, max_temp, min_ws, max_ws, min_rh, precip, wa);
+	double min_gust = -1.0, max_gust = -1.0;
+	bool b = m_weatherCondition.SetDailyWeatherValues(t, min_temp, max_temp, min_ws, max_ws, min_gust, max_gust, min_rh, precip, wa);
 	if (!b)
 		return ERROR_SEVERITY_WARNING;
 
@@ -696,6 +697,7 @@ HRESULT CCWFGM_WeatherStream::SetInstantaneousValues(const HSS_Time::WTime &time
 		    (wx->RH == curr_wx.RH) &&
 		    (wx->Precipitation == curr_wx.Precipitation) &&
 		    (wx->WindDirection == curr_wx.WindDirection) &&
+			(wx->WindGust == curr_wx.WindGust) &&
 		    (wx->WindSpeed == curr_wx.WindSpeed))
 			return S_OK;
 	}
@@ -706,7 +708,7 @@ HRESULT CCWFGM_WeatherStream::SetInstantaneousValues(const HSS_Time::WTime &time
 	bool ensemble = false;
 	if (wx->SpecifiedBits & IWXDATA_SPECIFIED_ENSEMBLE)
 		ensemble = true;
-	bool b = m_weatherCondition.SetHourlyWeatherValues(t, wx->Temperature, wx->RH, wx->Precipitation, wx->WindSpeed, wx->WindDirection, wx->DewPointTemperature, interp, ensemble);
+	bool b = m_weatherCondition.SetHourlyWeatherValues(t, wx->Temperature, wx->RH, wx->Precipitation, wx->WindSpeed, wx->WindGust, wx->WindDirection, wx->DewPointTemperature, interp, ensemble);
 	if (!b)
 		return ERROR_SEVERITY_WARNING;
 
