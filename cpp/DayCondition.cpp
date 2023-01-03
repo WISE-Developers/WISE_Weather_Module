@@ -205,7 +205,6 @@ void DailyCondition::calculateHourlyFFMC() {
 			if (calculate) {
 				double temp, rh, precip, ws, wd, dew;
 				switch (m_weatherCondition->m_options & WeatherCondition::FFMC_MASK) {
-					case WeatherCondition::FFMC_HYBRID:			// so we have to default to Lawson
 					case WeatherCondition::FFMC_LAWSON:		{	double prev_ffmc;
 								bool spec;
 								m_weatherCondition->DailyFFMC(m_DayStart , &prev_ffmc, &spec);

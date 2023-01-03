@@ -623,7 +623,6 @@ bool WeatherCondition::GetInstantaneousValues(const WTime &time, std::uint32_t m
 			ifwi->FFMC = ffmc1 * perc1 + ffmc2 * perc2;	// RWB: 080203: if the target FFMC value was specified by the user, then we should linearly interpolate to it to make sure we are consistent
 		} else {						// but because using ffmc1 as a starting code (below) we aren't concerned about checking fs1
 				switch (m_options & FFMC_MASK) {
-					case FFMC_HYBRID:
 					case FFMC_LAWSON:		{	double prev_ffmc, today_ffmc;
 
 								WTime dayStart(time);
@@ -1486,10 +1485,10 @@ WISE::WeatherProto::WeatherStream* WeatherCondition::serialize(const SerializePr
 	switch (m_options & FFMC_MASK)
 	{
 	case FFMC_VAN_WAGNER:
+	default:
 		stream->set_hffmcmethod(WISE::WeatherProto::WeatherStream_FFMCMethod_VAN_WAGNER);
 		break;
 	case FFMC_HYBRID:
-	default:
 		stream->set_hffmcmethod(WISE::WeatherProto::WeatherStream_FFMCMethod_LAWSON);
 		break;
 	}
