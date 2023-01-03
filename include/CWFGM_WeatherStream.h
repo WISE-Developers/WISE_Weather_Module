@@ -333,7 +333,7 @@ public:
 		\retval	ERROR_SEVERITY_WARNING	The day is not present on the weather stream.
 	*/
 	virtual NO_THROW HRESULT GetDailyValues(const HSS_Time::WTime &time, double *min_temp, double *max_temp, double *min_ws,
-	    double *max_ws, double *min_rh, double *precip, double *wd);
+	    double *max_ws, double *min_gust, double *max_gust, double *min_rh, double *precip, double *wd);
 	/**
 		Sets the daily observations for the specified day.  If the day is represented as hourly readings, then this method will fail.
 		\param	time	Time identifying the day to set, provided as a count of seconds since Midnight January 1, 1600 GMT time.
@@ -350,7 +350,7 @@ public:
 		\retval	ERROR_SCENARIO_SIMULATION_RUNNING	Cannot set daily values while the simulation is running.
 	*/
 	virtual NO_THROW HRESULT SetDailyValues(const HSS_Time::WTime &time, double min_temp, double max_temp, double min_ws, double max_ws,
-	    double min_rh, double precip, double wd);
+	    double min_gust, double max_gust, double min_rh, double precip, double wd);
 	virtual NO_THROW HRESULT GetCumulativePrecip(const HSS_Time::WTime& time, const HSS_Time::WTimeSpan& duration, double* rain);
 	/**
 		Gets the instantaneous values for Temperature, DewPointTemperature, RH, Precipitation, WindSpeed and WindDirection (and saves these values in the data structure wx). It

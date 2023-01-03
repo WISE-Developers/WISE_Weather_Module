@@ -97,13 +97,13 @@ public:
 
 	WeatherCondition &operator=(const WeatherCondition &toCopy);
 
-	bool GetDailyWeatherValues(const WTime &time, double *min_temp, double *max_temp, double *min_ws, double *max_ws, double *rh, double *precip, double *wd);
-	bool SetDailyWeatherValues(const WTime &time, double min_temp, double max_temp, double min_ws, double max_ws, double rh, double precip, double wd);
+	bool GetDailyWeatherValues(const WTime &time, double *min_temp, double *max_temp, double *min_ws, double *max_ws, double* min_gust, double* max_gust, double *rh, double *precip, double *wd);
+	bool SetDailyWeatherValues(const WTime &time, double min_temp, double max_temp, double min_ws, double max_ws, double min_gust, double max_gust, double rh, double precip, double wd);
 								// values to get/set if it's a "daily observation mode"
 	double GetHourlyRain(const WTime &time);
-	bool SetHourlyWeatherValues(const WTime &time, double temp, double rh, double precip, double ws, double wd, double dew);
-	bool SetHourlyWeatherValues(const WTime &time, double temp, double rh, double precip, double ws, double wd, double dew, bool interp);
-	bool SetHourlyWeatherValues(const WTime& time, double temp, double rh, double precip, double ws, double wd, double dew, bool interp, bool ensemble);
+	bool SetHourlyWeatherValues(const WTime &time, double temp, double rh, double precip, double ws, double gust, double wd, double dew);
+	bool SetHourlyWeatherValues(const WTime &time, double temp, double rh, double precip, double ws, double gust, double wd, double dew, bool interp);
+	bool SetHourlyWeatherValues(const WTime& time, double temp, double rh, double precip, double ws, double gust, double wd, double dew, bool interp, bool ensemble);
 	// values to get/set if it's an "hourly observation mode"
 	bool MakeHourlyObservations(const WTime &time);
 	bool MakeDailyObservations(const WTime &time);
@@ -155,8 +155,8 @@ public:
 	void calculateValues();
 
 private:
-	void DistributeDailyValue(std::vector<std::string> &header, int index, double value, double *min_temp, double *max_temp, double *rh, double *precip, double *min_ws, double *max_ws, double *wd);
-	void FillDailyLineValue(std::vector<std::string> &header, char *line, char *file_type,double *min_temp, double *max_temp, double *rh, double *precip, double *min_ws, double *max_ws, double *wd);
+	void DistributeDailyValue(std::vector<std::string> &header, int index, double value, double *min_temp, double *max_temp, double *rh, double *precip, double *min_ws, double *max_ws, double *min_gust, double *max_gust, double *wd);
+	void FillDailyLineValue(std::vector<std::string> &header, char *line, char *file_type,double *min_temp, double *max_temp, double *rh, double *precip, double *min_ws, double *max_ws, double *min_gust, double *max_gust, double *wd);
 	int GetWord(std::string *source, std::string *strWord);
 	void ProcessHeader(TCHAR *line, std::vector<std::string> &header);
 	void CopyDailyCondition(WTime &source, WTime &dest);
