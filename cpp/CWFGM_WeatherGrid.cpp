@@ -917,11 +917,11 @@ HRESULT CCWFGM_WeatherGrid::GetRawWxValues(ICWFGM_GridEngine *grid, Layer *layer
 
 	double nearest_d = DBL_MAX; // the distance to the active weather station nearest this point
 	double nearest_precip = 0.0; // the active weather station nearest this point
-	double nearest_wd = 0.0, nearest_ws = 0.0;
+	double nearest_wd = 0.0, nearest_ws = 0.0, nearest_gust = 0.0;
 	double elev = 0, slope_factor, slope_azimuth; // slope_factor, slope_azimuth are unused
 	grid::TerrainValue elev_valid, terrain_valid;
-	double weight_temp = 0.0, weight_ws = 0.0, weight_precip = 0.0, d, ww; // the cumulative weight, and individual weights, and distances for each weather station, respectively
-	XY_Vector wind_vector(0.0, 0.0);
+	double weight_temp = 0.0, weight_ws = 0.0, weight_gust = 0.0, weight_precip = 0.0, d, ww; // the cumulative weight, and individual weights, and distances for each weather station, respectively
+	XY_Vector wind_vector(0.0, 0.0), gust_vector(0.0, 0.0);
 
 	XY_Point pt2(pt.x, pt.y);
 	IWXData wx2;
@@ -952,8 +952,8 @@ HRESULT CCWFGM_WeatherGrid::GetRawWxValues(ICWFGM_GridEngine *grid, Layer *layer
 	}
 
 	if (interpolate_method & (1ull << CWFGM_SCENARIO_OPTION_WEATHER_INTERPOLATE_SPATIAL)) {
-		double wx_WindSpeed;
-		std::uint32_t wind_cnt = 0;
+		double wx_WindSpeed, wx_WindGust;
+		std::uint32_t wind_cnt = 0, gust_cnt = 0;
 
 		if (interpolate_method & (1ull << CWFGM_SCENARIO_OPTION_WEATHER_INTERPOLATE_TEMP_RH)) {
 			wx->Temperature = 0.0;
@@ -965,6 +965,7 @@ HRESULT CCWFGM_WeatherGrid::GetRawWxValues(ICWFGM_GridEngine *grid, Layer *layer
 
 			if (m_idwExponentWS != 0.0) {
 				wx_WindSpeed = 0.0;
+				wx_WindGust = 0.0;
 			}
 		}
 
@@ -1053,10 +1054,22 @@ HRESULT CCWFGM_WeatherGrid::GetRawWxValues(ICWFGM_GridEngine *grid, Layer *layer
 						::sincos(wx2.WindDirection, &sin_wd, &cos_wd);
 						wind_vector.x += cos_wd * wx2.WindSpeed * ww_ws;
 						wind_vector.y += sin_wd * wx2.WindSpeed * ww_ws;
+						if (wx2.SpecifiedBits & IWXDATA_SPECIFIED_WINDGUST) {
+							gust_vector.x += cos_wd * wx2.WindGust * ww_ws;
+							gust_vector.y += sin_wd * wx2.WindGust * ww_ws;
+							gust_cnt++;
+							weight_gust += ww_ws;
+						}
 					}
 					else {
 						if (wx2.WindSpeed != 0.0)
 							wx_WindSpeed += ww_ws * wx2.WindSpeed;
+						if (wx2.SpecifiedBits & IWXDATA_SPECIFIED_WINDGUST) {
+							weak_assert(wx2.WindGust > 0.0);
+							wx_WindGust += ww_ws * wx2.WindGust;
+							gust_cnt++;
+							weight_gust += ww_ws;
+						}
 					}
 					weight_ws += ww_ws;
 					wind_cnt++;
@@ -1086,6 +1099,8 @@ HRESULT CCWFGM_WeatherGrid::GetRawWxValues(ICWFGM_GridEngine *grid, Layer *layer
 				nearest_precip = wx2.Precipitation;
 				nearest_wd = wx2.WindDirection;
 				nearest_ws = wx2.WindSpeed;
+				if (wx2.SpecifiedBits & IWXDATA_SPECIFIED_WINDGUST)
+					nearest_gust = wx2.WindGust;
 			}
 		
 			sn = (GStreamNode*)sn->LN_Succ();
@@ -1125,9 +1140,16 @@ HRESULT CCWFGM_WeatherGrid::GetRawWxValues(ICWFGM_GridEngine *grid, Layer *layer
 					if (interpolate_method & (1ull << (CWFGM_SCENARIO_OPTION_WEATHER_INTERPOLATE_WIND_VECTOR))) {
 						double wd = wind_vector.atan();
 						double ws = wind_vector.Length() / weight_ws;
+						double gust = gust_vector.Length() / weight_gust;
 						if (fabs(ws - wx->WindSpeed) > 1e-7) {
 							wx->WindSpeed = ws;
 							wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDSPEED;
+						}
+						if (gust_cnt > 0) {
+							if (fabs(gust - wx->WindGust) > 1e-7) {
+								wx->WindGust = ws;
+								wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDGUST;
+							}
 						}
 						set_wd = true;
 						if (fabs(wx->WindDirection - wd) > 1e-7) {
@@ -1136,17 +1158,27 @@ HRESULT CCWFGM_WeatherGrid::GetRawWxValues(ICWFGM_GridEngine *grid, Layer *layer
 						}
 					}
 					else {
-						if (wx_WindSpeed != 0.0)
+						if ((wx_WindSpeed != 0.0) && (weight_ws != 0.0))
 							wx_WindSpeed /= weight_ws;
+						if ((wx_WindGust != 0.0) && (weight_gust != 0.0))
+							wx_WindGust /= weight_gust;
 						if (fabs(wx_WindSpeed - wx->WindSpeed) > 1e-7) {
 							wx->WindSpeed = wx_WindSpeed;
 							wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDSPEED;
+						}
+						if (fabs(wx_WindGust - wx->WindGust) > 1e-7) {
+							wx->WindGust = wx_WindGust;
+							wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDGUST;
 						}
 					}
 				} else {
 					if (wx->WindSpeed != nearest_ws) {
 						wx->WindSpeed = nearest_ws;
 						wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDSPEED;
+					}
+					if (wx->WindGust != nearest_gust) {
+						wx->WindGust = nearest_gust;
+						wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDGUST;
 					}
 				}
 
@@ -1156,10 +1188,16 @@ HRESULT CCWFGM_WeatherGrid::GetRawWxValues(ICWFGM_GridEngine *grid, Layer *layer
 					if (interpolate_method & (1ull << (CWFGM_SCENARIO_OPTION_WEATHER_INTERPOLATE_WIND_VECTOR))) {
 						double wd = NORMALIZE_ANGLE_RADIAN(wind_vector.atan());
 						double ws = wind_vector.Length() / weight_ws;
+						double gust = gust_vector.Length() / weight_gust;
 						if (fabs(ws - wx->WindSpeed) > 1e-7) {
 							weak_assert(0);
 							wx->WindSpeed = ws;
 							wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDSPEED;
+						}
+						if (fabs(gust - wx->WindGust) > 1e-7) {
+							weak_assert(0);
+							wx->WindGust = gust;
+							wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDGUST;
 						}
 						set_wd = true;
 						if (fabs(wx->WindDirection - wd) > 1e-7) {
@@ -1169,12 +1207,18 @@ HRESULT CCWFGM_WeatherGrid::GetRawWxValues(ICWFGM_GridEngine *grid, Layer *layer
 						}
 					}
 					else {
-						if (wx_WindSpeed != 0.0)
+						if ((wx_WindSpeed != 0.0) && (weight_ws != 0.0))
 							wx_WindSpeed /= weight_ws;
+						if ((wx_WindGust != 0.0) && (weight_gust != 0.0))
+							wx_WindGust /= weight_gust;
 						if (fabs(wx_WindSpeed - wx->WindSpeed) > 1e-7) {
 							weak_assert(0);
 							wx->WindSpeed = wx_WindSpeed;
 							wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDSPEED;
+						}
+						if (fabs(wx_WindGust - wx->WindGust) > 1e-7) {
+							wx->WindGust = wx_WindGust;
+							wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDGUST;
 						}
 					}
 				} else {
@@ -1182,6 +1226,11 @@ HRESULT CCWFGM_WeatherGrid::GetRawWxValues(ICWFGM_GridEngine *grid, Layer *layer
 						weak_assert(0);
 						wx->WindSpeed = nearest_ws;
 						wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDSPEED;
+					}
+					if (wx->WindGust != nearest_gust) {
+						weak_assert(0);
+						wx->WindGust = nearest_gust;
+						wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDGUST;
 					}
 				}
     #endif
