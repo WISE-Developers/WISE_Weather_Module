@@ -252,7 +252,7 @@ HRESULT CCWFGM_WindSpeedGrid::Export(const std::uint16_t sector, const double sp
 	CSemaphoreEngage lock(GDALClient::GDALClient::getGDALMutex(), true);
 
 	GDALExporter exporter;
-	exporter.AddTag("TIFFTAG_SOFTWARE", "Prometheus");
+	exporter.AddTag("TIFFTAG_SOFTWARE", "W.I.S.E.");
 	exporter.AddTag("TIFFTAG_GDAL_NODATA", "-9999");
 	char mbstr[100];
 	std::time_t t = std::time(nullptr);
