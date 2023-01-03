@@ -584,7 +584,7 @@ HRESULT CCWFGM_WeatherStream::IsAnyModified() {
 
 
 HRESULT CCWFGM_WeatherStream::GetDailyValues(const HSS_Time::WTime &time, double *min_temp, double *max_temp,
-    double *min_ws, double *max_ws, double *min_rh, double *precip, double *wa) {
+    double *min_ws, double *max_ws, double *min_gust, double *max_gust, double *min_rh, double *precip, double *wa) {
 	if ((!min_temp) || (!max_temp) || (!min_ws) || (!max_ws) || (!min_rh) || (!precip) || (!wa))	return E_POINTER;
 
 	SEM_BOOL engaged;
@@ -600,6 +600,8 @@ HRESULT CCWFGM_WeatherStream::GetDailyValues(const HSS_Time::WTime &time, double
 	*max_temp = MAX_TEMP;
 	*min_ws = MIN_WS;
 	*max_ws = MAX_WS;
+	*min_gust = MIN_GUST;
+	*max_gust = MAX_GUST;
 	*min_rh = RH;
 	*precip = PRECIP;
 	return S_OK;
@@ -624,13 +626,12 @@ HRESULT CCWFGM_WeatherStream::GetCumulativePrecip(const HSS_Time::WTime& time, c
 
 
 HRESULT CCWFGM_WeatherStream::SetDailyValues(const HSS_Time::WTime &time, double min_temp, double max_temp, double min_ws,
-    double max_ws, double min_rh, double precip, double wa) {
+    double max_ws, double min_gust, double max_gust, double min_rh, double precip, double wa) {
 	SEM_BOOL engaged;
 	CRWThreadSemaphoreEngage engage(m_lock, SEM_TRUE, &engaged, 1000000LL);
 	if (!engaged)								return ERROR_SCENARIO_SIMULATION_RUNNING;
 
 	WTime t(time, &m_weatherCondition.m_timeManager);
-	double min_gust = -1.0, max_gust = -1.0;
 	bool b = m_weatherCondition.SetDailyWeatherValues(t, min_temp, max_temp, min_ws, max_ws, min_gust, max_gust, min_rh, precip, wa);
 	if (!b)
 		return ERROR_SEVERITY_WARNING;
