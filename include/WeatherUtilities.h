@@ -165,7 +165,7 @@ private:
 	std::uint32_t m_begin, m_end, m_max;
 
 
-	__INLINE std::uint32_t arrayIndex(std::uint16_t x, std::uint16_t y) const {
+	std::uint32_t arrayIndex(std::uint16_t x, std::uint16_t y) const {
 		weak_assert(x < m_xsize);
 		weak_assert(y < m_ysize);
 		return y * m_xsize + x;

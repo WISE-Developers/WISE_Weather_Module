@@ -161,7 +161,7 @@ class SpeedSector : public Sector
 	defined rules.  \n\n This object will also update any FWI calculations required based on options and input values. \n\n No weather streams or
 	weather stations are associated with this object since it simply updates and replaces wind speed values based on the grid rules.
 */
-class WEATHERCOM_API CCWFGM_WindSpeedGrid : public ICWFGM_GridEngine, /*public ISerializeXMLStream,*/ public ISerializeProto {
+class WEATHERCOM_API CCWFGM_WindSpeedGrid : public ICWFGM_GridEngine, public ISerializeProto {
 
 public:
 #ifndef DOXYGEN_IGNORE_CODE
@@ -511,8 +511,8 @@ public:
 
 		std::uint16_t convertX(double x, XY_Rectangle *bbox);
 		std::uint16_t convertY(double y, XY_Rectangle *bbox);
-		__INLINE double invertX(double x)			{ return x * m_resolution + m_xllcorner; }
-		__INLINE double invertY(double y)			{ return y * m_resolution + m_yllcorner; }
+		double invertX(double x)			{ return x * m_resolution + m_xllcorner; }
+		double invertY(double y)			{ return y * m_resolution + m_yllcorner; }
 		HRESULT fixResolution();
 
 public:

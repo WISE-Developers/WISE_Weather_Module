@@ -93,10 +93,6 @@ public abstract class WEATHER_OPTION {
 	 */
 	public static final int FFMC_LAWSON				= 10542;
 	/**
-	 * Use the hybrid equations for FFMC. This attribute must be a {@link java.lang.Boolean} value.
-	 */
-	public static final int FFMC_HYBRID				= 10543;
-	/**
 	 * Use the specified FWI value. This attribute must be a {@link java.lang.Boolean} value.
 	 */
 	public static final int FWI_USE_SPECIFIED		= 10544;

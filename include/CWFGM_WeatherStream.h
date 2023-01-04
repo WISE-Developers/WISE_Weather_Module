@@ -113,7 +113,6 @@ public:
 		<li><code>CWFGM_WEATHER_OPTION_WARNONSUNRISE</code>		Boolean.  true if sunrise could not be calculated.
 		<li><code>CWFGM_WEATHER_OPTION_WARNONSUNSET</code>		Boolean.  true if sunset could not be calculated.
 		<li><code>CWFGM_WEATHER_OPTION_FFMC_VANWAGNER</code>		Boolean.  Use the Van Wagner approach to calculating HFFMC values.  Also forces the object to ignore any provided FWI values (for consistency).
-		<li><code>CWFGM_WEATHER_OPTION_FFMC_HYBRID</code>		Boolean.  Do not use, only for experimental purposes.
 		<li><code>CWFGM_WEATHER_OPTION_FFMC_LAWSON</code>		Boolean.  Use the Lawson approach to calculating HFFMC values.  Also forces the object to ignore any provided FWI values (for consistency).
 		<li><code>CWFGM_WEATHER_OPTION_FWI_USE_SPECIFIED</code>		Boolean.  Use any/all FWI values provided in the input file.
 		<li><code>CWFGM_WEATHER_OPTION_ORIGIN_FILE</code>		Boolean.  Indicates whether the weather stream data origininated from an imported file.
@@ -154,7 +153,6 @@ public:
 		\param	option	The weather option of interest.  Valid values are:
 		<ul>
 		<li><code>CWFGM_WEATHER_OPTION_FFMC_VANWAGNER</code>		Boolean.  Use the Van Wagner approach to calculating HFFMC values
-		<li><code>CWFGM_WEATHER_OPTION_FFMC_HYBRID</code>		Boolean.  Do not use, only for experimental purposes.
 		<li><code>CWFGM_WEATHER_OPTION_FFMC_LAWSON</code>		Boolean.  Use the Lawson approach to calculating HFFMC values
 		<li><code>CWFGM_WEATHER_OPTION_FWI_USE_SPECIFIED</code>	Boolean.  Use any/all FWI values provided in the input file
 		<li><code>CWFGM_WEATHER_OPTION_TEMP_ALPHA</code>		64-bit floating point.  The 'alpha' value for Beck et. al. diurnal equations for temperature.
@@ -335,7 +333,7 @@ public:
 		\retval	ERROR_SEVERITY_WARNING	The day is not present on the weather stream.
 	*/
 	virtual NO_THROW HRESULT GetDailyValues(const HSS_Time::WTime &time, double *min_temp, double *max_temp, double *min_ws,
-	    double *max_ws, double* min_gust, double* max_gust, double *min_rh, double *precip, double *wd);
+	    double *max_ws, double *min_gust, double *max_gust, double *min_rh, double *precip, double *wd);
 	/**
 		Sets the daily observations for the specified day.  If the day is represented as hourly readings, then this method will fail.
 		\param	time	Time identifying the day to set, provided as a count of seconds since Midnight January 1, 1600 GMT time.
@@ -352,7 +350,7 @@ public:
 		\retval	ERROR_SCENARIO_SIMULATION_RUNNING	Cannot set daily values while the simulation is running.
 	*/
 	virtual NO_THROW HRESULT SetDailyValues(const HSS_Time::WTime &time, double min_temp, double max_temp, double min_ws, double max_ws,
-	     double min_gust, double max_gust, double min_rh, double precip, double wd);
+	    double min_gust, double max_gust, double min_rh, double precip, double wd);
 	virtual NO_THROW HRESULT GetCumulativePrecip(const HSS_Time::WTime& time, const HSS_Time::WTimeSpan& duration, double* rain);
 	/**
 		Gets the instantaneous values for Temperature, DewPointTemperature, RH, Precipitation, WindSpeed and WindDirection (and saves these values in the data structure wx). It

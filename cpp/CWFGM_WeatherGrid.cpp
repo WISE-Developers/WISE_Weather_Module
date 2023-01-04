@@ -87,7 +87,7 @@ IMPLEMENT_OBJECT_CACHE_MT_NO_TEMPLATE(GStreamNode, GStreamNode, 512 * 1024 / siz
 
 HRESULT CCWFGM_WeatherGrid::MT_Lock(Layer *layerThread, bool exclusive, std::uint16_t obtain) {
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine = m_gridEngine(layerThread);
-	if (!gridEngine)	{ weak_assert(0); return ERROR_GRID_UNINITIALIZED; }
+	if (!gridEngine)	{ weak_assert(false); return ERROR_GRID_UNINITIALIZED; }
 
 	HRESULT hr;
 	if (obtain == (std::uint16_t)-1) {
@@ -156,7 +156,7 @@ HRESULT CCWFGM_WeatherGrid::PutGridEngine(Layer *layerThread, ICWFGM_GridEngine 
 			return S_OK;
 		}
 	}
-	if (!m_layerManager)							{ weak_assert(0); return ERROR_GRID_UNINITIALIZED; }
+	if (!m_layerManager)							{ weak_assert(false); return ERROR_GRID_UNINITIALIZED; }
 	HRESULT hr;
 	if (SUCCEEDED(hr = m_layerManager->PutGridEngine(layerThread, this, newVal))) {
 	}
@@ -526,7 +526,7 @@ HRESULT CCWFGM_WeatherGrid::GetEventTime(Layer *layerThread, const XY_Point& pt,
 	if (!next_event)							return E_POINTER;
 
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine = m_gridEngine(layerThread);
-	if (!gridEngine)							{ weak_assert(0); return ERROR_GRID_UNINITIALIZED; }
+	if (!gridEngine)							{ weak_assert(false); return ERROR_GRID_UNINITIALIZED; }
 	HRESULT hr = S_OK;
 
 	if (flags & (CWFGM_GETEVENTTIME_FLAG_SEARCH_SUNRISE | CWFGM_GETEVENTTIME_FLAG_SEARCH_SUNSET)) {
@@ -570,7 +570,7 @@ HRESULT CCWFGM_WeatherGrid::GetEventTime(Layer *layerThread, const XY_Point& pt,
 HRESULT CCWFGM_WeatherGrid::PreCalculationEvent(Layer *layerThread, const HSS_Time::WTime &time, std::uint32_t mode, /*[in, out]*/ CalculationEventParms *parms) {
 	std::uint32_t *cnt;
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine = m_gridEngine(layerThread, &cnt);
-	if (!gridEngine)							{ weak_assert(0); return ERROR_GRID_UNINITIALIZED; }
+	if (!gridEngine)							{ weak_assert(false); return ERROR_GRID_UNINITIALIZED; }
 
 	weak_assert(m_converter.resolution() != -1.0);
 
@@ -591,7 +591,7 @@ HRESULT CCWFGM_WeatherGrid::PreCalculationEvent(Layer *layerThread, const HSS_Ti
 HRESULT CCWFGM_WeatherGrid::PostCalculationEvent(Layer *layerThread, const HSS_Time::WTime &time, std::uint32_t mode, /*[in, out]*/ CalculationEventParms *parms) {
 	std::uint32_t *cnt;
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine = m_gridEngine(layerThread, &cnt);
-	if (!gridEngine)							{ weak_assert(0); return ERROR_GRID_UNINITIALIZED; }
+	if (!gridEngine)							{ weak_assert(false); return ERROR_GRID_UNINITIALIZED; }
 
 	if ((mode & (~(1 << CWFGM_SCENARIO_OPTION_WEATHER_ALTERNATE_CACHE))) == 1) {
 		WTime t(time, m_timeManager);
@@ -613,7 +613,7 @@ HRESULT CCWFGM_WeatherGrid::GetAttribute(Layer *layerThread, std::uint16_t optio
 	if (SUCCEEDED(hr))
 		return hr;
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine = m_gridEngine(layerThread);
-	if (!gridEngine) { weak_assert(0); return ERROR_GRID_UNINITIALIZED; }
+	if (!gridEngine) { weak_assert(false); return ERROR_GRID_UNINITIALIZED; }
 
 	return gridEngine->GetAttribute(layerThread, option, value);
 }
@@ -636,7 +636,7 @@ HRESULT CCWFGM_WeatherGrid::GetAttributeData(Layer* layerThread, const XY_Point&
 		return hr;
 	}
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine = m_gridEngine(layerThread);
-	if (!gridEngine) { weak_assert(0); return ERROR_GRID_UNINITIALIZED; }
+	if (!gridEngine) { weak_assert(false); return ERROR_GRID_UNINITIALIZED; }
 	return gridEngine->GetAttributeData(layerThread, pt, time, timeSpan, option, optionFlags, attribute, attribute_valid, cache_bbox);
 }
 
@@ -663,7 +663,6 @@ HRESULT CCWFGM_WeatherGrid::GetAttribute(std::uint16_t option, PolymorphicAttrib
 			return S_OK;
 		case CWFGM_WEATHER_OPTION_FFMC_VANWAGNER:
 		case CWFGM_WEATHER_OPTION_FFMC_LAWSON:
-		case CWFGM_WEATHER_OPTION_FFMC_HYBRID:
 			{
 				boost::intrusive_ptr<CCWFGM_WeatherStream> s;
 				if (m_streamList.GetCount() == 1)
@@ -713,7 +712,7 @@ HRESULT CCWFGM_WeatherGrid::SetAttribute(std::uint16_t option, const Polymorphic
 			return S_OK;
 	}
 
-	weak_assert(0);
+	weak_assert(false);
 	return hr;
 }
  
@@ -1046,7 +1045,8 @@ HRESULT CCWFGM_WeatherGrid::GetRawWxValues(ICWFGM_GridEngine *grid, Layer *layer
 						ww_ws = pow(ww, m_idwExponentWS * 0.5);
 					else
 						ww_ws = ww;
-				} else		ww_ws = 0.0;
+				} else
+					ww_ws = 0.0;
 			
 				if (m_idwExponentWS != 0.0) {
 					if (interpolate_method & (1ull << (CWFGM_SCENARIO_OPTION_WEATHER_INTERPOLATE_WIND_VECTOR))) {
@@ -1190,18 +1190,18 @@ HRESULT CCWFGM_WeatherGrid::GetRawWxValues(ICWFGM_GridEngine *grid, Layer *layer
 						double ws = wind_vector.Length() / weight_ws;
 						double gust = gust_vector.Length() / weight_gust;
 						if (fabs(ws - wx->WindSpeed) > 1e-7) {
-							weak_assert(0);
+							weak_assert(false);
 							wx->WindSpeed = ws;
 							wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDSPEED;
 						}
 						if (fabs(gust - wx->WindGust) > 1e-7) {
-							weak_assert(0);
+							weak_assert(false);
 							wx->WindGust = gust;
 							wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDGUST;
 						}
 						set_wd = true;
 						if (fabs(wx->WindDirection - wd) > 1e-7) {
-							weak_assert(0);
+							weak_assert(false);
 							wx->WindDirection = wd; // use instantaneous wd from the nearest wx stream
 							wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDDIRECTION;
 						}
@@ -1212,7 +1212,7 @@ HRESULT CCWFGM_WeatherGrid::GetRawWxValues(ICWFGM_GridEngine *grid, Layer *layer
 						if ((wx_WindGust != 0.0) && (weight_gust != 0.0))
 							wx_WindGust /= weight_gust;
 						if (fabs(wx_WindSpeed - wx->WindSpeed) > 1e-7) {
-							weak_assert(0);
+							weak_assert(false);
 							wx->WindSpeed = wx_WindSpeed;
 							wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDSPEED;
 						}
@@ -1223,12 +1223,12 @@ HRESULT CCWFGM_WeatherGrid::GetRawWxValues(ICWFGM_GridEngine *grid, Layer *layer
 					}
 				} else {
 					if (wx->WindSpeed != nearest_ws) {
-						weak_assert(0);
+						weak_assert(false);
 						wx->WindSpeed = nearest_ws;
 						wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDSPEED;
 					}
 					if (wx->WindGust != nearest_gust) {
-						weak_assert(0);
+						weak_assert(false);
 						wx->WindGust = nearest_gust;
 						wx->SpecifiedBits |= IWXDATA_OVERRODE_WINDGUST;
 					}
@@ -1283,7 +1283,7 @@ HRESULT CCWFGM_WeatherGrid::GetRawWxValues(ICWFGM_GridEngine *grid, Layer *layer
 
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine = m_gridEngine(layerThread);
 	if (!gridEngine) {
-		weak_assert(0);
+		weak_assert(false);
 		hr = ERROR_GRID_UNINITIALIZED;
 		iwx.wx = *wx;
 		iwx.wx_valid = false;
@@ -1582,12 +1582,12 @@ HRESULT CCWFGM_WeatherGrid::fixResolution() {
 	PolymorphicAttribute var;
 
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine;
-	if (!(gridEngine = m_gridEngine(nullptr)))					{ weak_assert(0); return ERROR_GRID_UNINITIALIZED; }
+	if (!(gridEngine = m_gridEngine(nullptr)))					{ weak_assert(false); return ERROR_GRID_UNINITIALIZED; }
 
 	/*POLYMORPHIC CHECK*/
 	try {
 		if (!m_timeManager) {
-			weak_assert(0);
+			weak_assert(false);
 			ICWFGM_CommonData* data;
 			if (FAILED(hr = gridEngine->GetCommonData(nullptr, &data))) return hr;
 			m_timeManager = data->m_timeManager;
@@ -1602,7 +1602,7 @@ HRESULT CCWFGM_WeatherGrid::fixResolution() {
 		VariantToDouble_(var, &gridYLL);
 	}
 	catch (std::bad_variant_access&) {
-		weak_assert(0);
+		weak_assert(false);
 		return ERROR_GRID_UNINITIALIZED;
 	}
 

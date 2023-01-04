@@ -134,7 +134,7 @@ public class CWFGM_WeatherStream implements Serializable, Cloneable {
 		case WEATHER_OPTION.FFMC_VANWAGNER:
 			return Boolean.valueOf((m_weatherCondition.m_options & 0x00000003) == 1);
 		case WEATHER_OPTION.FFMC_HYBRID:
-			return Boolean.valueOf((m_weatherCondition.m_options & 0x00000003) == 2);
+			return Boolean.valueOf(false);
 		case WEATHER_OPTION.FFMC_LAWSON:
 			return Boolean.valueOf((m_weatherCondition.m_options & 0x00000003) == 3);
 		case WEATHER_OPTION.FWI_USE_SPECIFIED:
@@ -211,17 +211,6 @@ public class CWFGM_WeatherStream implements Serializable, Cloneable {
 				m_weatherCondition.clearConditions();
 				m_weatherCondition.m_options &= (~(0x0000007));
 				m_weatherCondition.m_options |= 0x00000001;
-				m_bRequiresSave = true;
-			}
-			break;
-		case WEATHER_OPTION.FFMC_HYBRID:
-			if (!(value instanceof Boolean))
-				throw new IllegalArgumentException("The property FFMC_HYBRID must be passed a Boolean");
-			bValue = (Boolean)value;
-			if ((m_weatherCondition.m_options & 0x00000003) != 2) {
-				m_weatherCondition.clearConditions();
-				m_weatherCondition.m_options &= (~(0x0000007));
-				m_weatherCondition.m_options |= 0x00000002;
 				m_bRequiresSave = true;
 			}
 			break;
