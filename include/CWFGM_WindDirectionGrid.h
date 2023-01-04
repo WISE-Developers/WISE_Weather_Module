@@ -23,7 +23,6 @@
 #include "WTime.h"
 #include "WindGrid.h"
 #include "ICWFGM_GridEngine.h"
-//#include "ISerializeXMLStream.h"
 #include "semaphore.h"
 #include "ISerializeProto.h"
 #include "windGrid.pb.h"
@@ -35,7 +34,6 @@ using namespace HSS_Time;
 #endif
 
 
-#define CWFGM_WINDDIRECTION_GRID_VERSION	11
 #ifndef DOXYGEN_IGNORE_CODE
 struct direction_entry
 {
@@ -165,7 +163,7 @@ class NewDirectionSector : public Sector
 	defined rules.  \n\n This object will also update any FWI calculations required based on options and input values. \n\n No weather streams or
 	weather stations are associated with this object since it simply updates and replaces wind direction values based on the grid rules.
 */
-class WEATHERCOM_API CCWFGM_WindDirectionGrid : public ICWFGM_GridEngine, /*public ISerializeXMLStream,*/ public ISerializeProto {
+class WEATHERCOM_API CCWFGM_WindDirectionGrid : public ICWFGM_GridEngine, public ISerializeProto {
 
 public:
 #ifndef DOXYGEN_IGNORE_CODE
@@ -495,7 +493,7 @@ public:
 	virtual NO_THROW HRESULT PutCommonData(Layer* layerThread, ICWFGM_CommonData* pVal) override;
 
 #ifndef DOXYGEN_IGNORE_CODE
-		__INLINE std::uint32_t ArrayIndex(std::uint16_t x, std::uint16_t y)
+		std::uint32_t ArrayIndex(std::uint16_t x, std::uint16_t y)
 		{
 			if ((m_ysize == (std::uint16_t)-1) && (m_xsize == (std::uint16_t)-1)) {
 				m_gridEngine(nullptr)->GetDimensions(0, &m_xsize, &m_ysize);
@@ -525,8 +523,8 @@ protected:
 
 	std::uint16_t convertX(double x, XY_Rectangle *bbox);
 	std::uint16_t convertY(double y, XY_Rectangle *bbox);
-	__INLINE double invertX(double x)			{ return x * m_resolution + m_xllcorner; }
-	__INLINE double invertY(double y)			{ return y * m_resolution + m_yllcorner; }
+	double invertX(double x)			{ return x * m_resolution + m_xllcorner; }
+	double invertY(double y)			{ return y * m_resolution + m_yllcorner; }
 	HRESULT fixResolution();
 
 public:

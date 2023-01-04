@@ -49,7 +49,7 @@ public:
 	defined rules.  \n\n This object will also update any FWI calculations required based on options and input values. \n\n No weather streams or
 	weather stations are associated with this object since it simply updates and replaces weather values based on the patch rules.
 */
-class WEATHERCOM_API CCWFGM_WeatherGridFilter : public ICWFGM_GridEngine, /*public ISerializeXMLStream,*/ public ISerializeProto {
+class WEATHERCOM_API CCWFGM_WeatherGridFilter : public ICWFGM_GridEngine, public ISerializeProto {
 
 #ifndef DOXYGEN_IGNORE_CODE
 public:
@@ -571,8 +571,8 @@ protected:
 
 	std::uint16_t convertX(double x, XY_Rectangle *bbox);
 	std::uint16_t convertY(double y, XY_Rectangle *bbox);
-	__INLINE double invertX(double x)			{ return x * m_resolution + m_xllcorner; }
-	__INLINE double invertY(double y)			{ return y * m_resolution + m_yllcorner; }
+	double invertX(double x)			{ return x * m_resolution + m_xllcorner; }
+	double invertY(double y)			{ return y * m_resolution + m_yllcorner; }
 	HRESULT fixResolution();
 
 	HRESULT getWeatherData(ICWFGM_GridEngine *gridEngine, Layer *layerThread, const XY_Point &pt, const HSS_Time::WTime &time, std::uint64_t interpolate_method, IWXData *wx, IFWIData *ifwi, DFWIData *dfwi, bool *wx_valid, XY_Rectangle *bbox_cache);	

@@ -169,7 +169,6 @@ HRESULT CCWFGM_WeatherStream::GetAttribute(std::uint16_t option, PolymorphicAttr
 		case CWFGM_WEATHER_OPTION_WARNONSUNSET:		*value = (m_weatherCondition.WarnOnSunRiseSet() & NO_SUNSET) ? true : false;	return S_OK;
 
 		case CWFGM_WEATHER_OPTION_FFMC_VANWAGNER:	*value = ((m_weatherCondition.m_options & WeatherCondition::FFMC_MASK) == WeatherCondition::FFMC_VAN_WAGNER)	? true : false;	return S_OK;
-		case CWFGM_WEATHER_OPTION_FFMC_HYBRID:		*value = ((m_weatherCondition.m_options & WeatherCondition::FFMC_MASK) == WeatherCondition::FFMC_HYBRID)		? true : false;	return S_OK;
 		case CWFGM_WEATHER_OPTION_FFMC_LAWSON:		*value = ((m_weatherCondition.m_options & WeatherCondition::FFMC_MASK) == WeatherCondition::FFMC_LAWSON)		? true : false;	return S_OK;
 		case CWFGM_WEATHER_OPTION_FWI_USE_SPECIFIED:*value = (m_weatherCondition.m_options & WeatherCondition::USER_SPECIFIED)	? true : false;	return S_OK;
 		case CWFGM_WEATHER_OPTION_ORIGIN_FILE:		*value = (m_weatherCondition.m_options & WeatherCondition::FROM_FILE)		? true : false; return S_OK;
@@ -205,7 +204,7 @@ HRESULT CCWFGM_WeatherStream::GetAttribute(std::uint16_t option, PolymorphicAttr
 	}
 			
     #ifdef DEBUG
-	weak_assert(0);
+	weak_assert(false);
     #endif
 
 	return ERROR_WEATHER_OPTION_INVALID;
@@ -231,17 +230,6 @@ HRESULT CCWFGM_WeatherStream::SetAttribute(std::uint16_t option, const Polymorph
 									m_weatherCondition.ClearConditions();
 									m_weatherCondition.m_options &= (~(0x0000007));	// also turn off the user override
 									m_weatherCondition.m_options |= WeatherCondition::FFMC_VAN_WAGNER;
-									m_bRequiresSave = true;
-								}
-								return S_OK;
-
-		case CWFGM_WEATHER_OPTION_FFMC_HYBRID:
-								if (FAILED(hr = VariantToBoolean_(v_value, &value))) return hr;
-								if ((value) && ((m_weatherCondition.m_options & 0x00000007) != WeatherCondition::FFMC_HYBRID)) {
-									m_cache.Clear();
-									m_weatherCondition.ClearConditions();
-									m_weatherCondition.m_options &= (~(0x0000007));	// also turn off the user override
-									m_weatherCondition.m_options |= WeatherCondition::FFMC_HYBRID;
 									m_bRequiresSave = true;
 								}
 								return S_OK;
@@ -383,8 +371,8 @@ HRESULT CCWFGM_WeatherStream::SetAttribute(std::uint16_t option, const Polymorph
 								return S_OK;
 		case CWFGM_GRID_ATTRIBUTE_LATITUDE:
 								if (FAILED(hr = VariantToDouble_(v_value, &dvalue))) return hr;
-								if (dvalue < DEGREE_TO_RADIAN(-90.0))					{ weak_assert(0); return E_INVALIDARG; }
-								if (dvalue > DEGREE_TO_RADIAN(90.0))					{ weak_assert(0); return E_INVALIDARG; }
+								if (dvalue < DEGREE_TO_RADIAN(-90.0))					{ weak_assert(false); return E_INVALIDARG; }
+								if (dvalue > DEGREE_TO_RADIAN(90.0))					{ weak_assert(false); return E_INVALIDARG; }
 								if (m_weatherCondition.m_worldLocation.m_latitude() != dvalue) {
 									m_cache.Clear();
 									m_weatherCondition.ClearConditions();
@@ -394,8 +382,8 @@ HRESULT CCWFGM_WeatherStream::SetAttribute(std::uint16_t option, const Polymorph
 								return S_OK;
 		case CWFGM_GRID_ATTRIBUTE_LONGITUDE:
 								if (FAILED(hr = VariantToDouble_(v_value, &dvalue))) return hr;
-								if (dvalue < DEGREE_TO_RADIAN(-180.0))					{ weak_assert(0); return E_INVALIDARG; }
-								if (dvalue > DEGREE_TO_RADIAN(180.0))					{ weak_assert(0); return E_INVALIDARG; }
+								if (dvalue < DEGREE_TO_RADIAN(-180.0))					{ weak_assert(false); return E_INVALIDARG; }
+								if (dvalue > DEGREE_TO_RADIAN(180.0))					{ weak_assert(false); return E_INVALIDARG; }
 								if (m_weatherCondition.m_worldLocation.m_longitude() != dvalue) {
 									m_cache.Clear();
 									m_weatherCondition.ClearConditions();
@@ -449,7 +437,7 @@ HRESULT CCWFGM_WeatherStream::SetAttribute(std::uint16_t option, const Polymorph
 							}
 	}
 			
-	weak_assert(0);
+	weak_assert(false);
 	return ERROR_WEATHER_OPTION_INVALID;
 }
 

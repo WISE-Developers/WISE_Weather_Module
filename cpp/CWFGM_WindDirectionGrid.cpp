@@ -311,7 +311,7 @@ HRESULT CCWFGM_WindDirectionGrid::SetAttribute(std::uint16_t option, const Polym
 								return S_OK;
 	}
 
-	weak_assert(0);
+	weak_assert(false);
 	return hr;
 }
 
@@ -517,7 +517,7 @@ HRESULT CCWFGM_WindDirectionGrid::GetSector(std::uint16_t option, /*[in,out]*/do
 
 HRESULT CCWFGM_WindDirectionGrid::MT_Lock(Layer *layerThread, bool exclusive, std::uint16_t obtain) {
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine = m_gridEngine(layerThread);
-	if (!gridEngine)	{ weak_assert(0); return ERROR_GRID_UNINITIALIZED; }
+	if (!gridEngine)	{ weak_assert(false); return ERROR_GRID_UNINITIALIZED; }
 
 	HRESULT hr = S_OK;
 	if (obtain == (std::uint16_t)-1) {
@@ -547,7 +547,7 @@ HRESULT CCWFGM_WindDirectionGrid::Valid(Layer *layerThread, const HSS_Time::WTim
 
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine = m_gridEngine(layerThread);
 
-	if (!gridEngine)							{ weak_assert(0); return ERROR_GRID_UNINITIALIZED; }
+	if (!gridEngine)							{ weak_assert(false); return ERROR_GRID_UNINITIALIZED; }
 
 	HRESULT hr = gridEngine->Valid(layerThread, start_time, duration, option, application_count);
 
@@ -599,7 +599,7 @@ HRESULT CCWFGM_WindDirectionGrid::GetAttribute(Layer *layerThread, std::uint16_t
 	}
 
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine = m_gridEngine(layerThread);
-	if (!gridEngine)							{ weak_assert(0); return ERROR_GRID_UNINITIALIZED; }
+	if (!gridEngine)							{ weak_assert(false); return ERROR_GRID_UNINITIALIZED; }
 	return gridEngine->GetAttribute(layerThread, option, value);
 }
 
@@ -608,7 +608,7 @@ HRESULT CCWFGM_WindDirectionGrid::GetWeatherData(Layer *layerThread, const XY_Po
 	const WTime t(time, m_timeManager);
 
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine = m_gridEngine(layerThread);
-	if (!gridEngine)							{ weak_assert(0); return ERROR_GRID_UNINITIALIZED; }
+	if (!gridEngine)							{ weak_assert(false); return ERROR_GRID_UNINITIALIZED; }
 
 	std::uint16_t x = convertX(pt.x, bbox_cache);
 	std::uint16_t y = convertY(pt.y, bbox_cache);
@@ -623,7 +623,7 @@ HRESULT CCWFGM_WindDirectionGrid::GetWeatherDataArray(Layer *layerThread, const 
     IWXData_2d *wx, IFWIData_2d *ifwi, DFWIData_2d *dfwi, bool_2d *wx_valid) {
 	const WTime t(time, m_timeManager);
 
-	if (scale != m_resolution) { weak_assert(0); return ERROR_GRID_UNSUPPORTED_RESOLUTION; }
+	if (scale != m_resolution) { weak_assert(false); return ERROR_GRID_UNSUPPORTED_RESOLUTION; }
 
 	std::uint16_t x_min = convertX(min_pt.x, nullptr), y_min = convertY(min_pt.y, nullptr);
 	std::uint16_t x_max = convertX(max_pt.x, nullptr), y_max = convertY(max_pt.y, nullptr);
@@ -654,7 +654,7 @@ HRESULT CCWFGM_WindDirectionGrid::GetWeatherDataArray(Layer *layerThread, const 
 	if (y_min > y_max)							return E_INVALIDARG;
 
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine = m_gridEngine(layerThread);
-	if (!gridEngine)							{ weak_assert(0); return ERROR_GRID_UNINITIALIZED; }
+	if (!gridEngine)							{ weak_assert(false); return ERROR_GRID_UNINITIALIZED; }
 
 	IWXData _iwx;
 	IFWIData _ifwi;
@@ -712,7 +712,7 @@ HRESULT CCWFGM_WindDirectionGrid::GetEventTime(Layer *layerThread, const XY_Poin
 	if (!next_event)							return E_POINTER;
 
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine = m_gridEngine(layerThread);
-	if (!gridEngine) { weak_assert(0); return ERROR_GRID_UNINITIALIZED; }
+	if (!gridEngine) { weak_assert(false); return ERROR_GRID_UNINITIALIZED; }
 
 	if (flags & (CWFGM_GETEVENTTIME_FLAG_SEARCH_SUNRISE | CWFGM_GETEVENTTIME_FLAG_SEARCH_SUNSET)) {
 		return gridEngine->GetEventTime(layerThread, pt, flags, from_time, next_event, event_valid);
@@ -911,10 +911,10 @@ HRESULT CCWFGM_WindDirectionGrid::fixResolution() {
 	PolymorphicAttribute var;
 
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine;
-	if (!(gridEngine = m_gridEngine(nullptr)))					{ weak_assert(0); return ERROR_GRID_UNINITIALIZED; }
+	if (!(gridEngine = m_gridEngine(nullptr)))					{ weak_assert(false); return ERROR_GRID_UNINITIALIZED; }
 	
 	if (!m_timeManager) {
-		weak_assert(0);
+		weak_assert(false);
 		ICWFGM_CommonData* data;
 		if (FAILED(hr = gridEngine->GetCommonData(nullptr, &data)) || (!data)) return hr;
 		m_timeManager = data->m_timeManager;

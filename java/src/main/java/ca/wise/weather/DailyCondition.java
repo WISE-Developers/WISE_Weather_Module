@@ -319,24 +319,6 @@ public class DailyCondition extends DailyWeather implements Serializable {
 				OutVariable<Double> prev_hr_ffmc = new OutVariable<Double>();
 				switch ((int)(m_weatherCondition.m_options & 0x00000003)) {
 					case 2:
-						m_weatherCondition.dailyFFMC(m_dayStart, prev_ffmc, spec);
-						
-						WTime prevLoop = new WTime(loop), loopStop = new WTime(loop);
-						prevLoop.subtract(WTimeSpan.Hour);
-						loopStop.subtract(new WTimeSpan(0, 48, 0, 0));
-						if (i == 0)
-							m_weatherCondition.hourlyFFMC(prevLoop, prev_hr_ffmc);
-						else
-							prev_hr_ffmc.value = m_calc_hr[i - 1].dFFMC;
-
-						double[] rain48 = new double[48];
-						rain48[0] = precip.value;
-						for (short ii = 1; greaterThan(prevLoop, loopStop); prevLoop.subtract(WTimeSpan.Hour), ii++)
-							rain48[ii] = m_weatherCondition.getHourlyRain(prevLoop);
-
-						val = Fwi.hourlyFFMCHybrid(prev_ffmc.value, m_calc_day.dFFMC, prev_hr_ffmc.value, rain48, temp.value, rh.value, ws.value,
-						    loop.getTimeOfDay(FORMAT_AS_LOCAL).getTotalSeconds());
-						break;
 					case 3:
 						m_weatherCondition.dailyFFMC(m_dayStart, prev_ffmc, spec);
 

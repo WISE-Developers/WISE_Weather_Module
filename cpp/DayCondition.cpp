@@ -130,7 +130,7 @@ void DailyCondition::calculateDailyFFMC() {
 	if ((m_weatherCondition->m_options & WeatherCondition::USER_SPECIFIED) && (m_spec_day.dFFMC >= 0.0))
 		m_calc_day.dFFMC = m_spec_day.dFFMC;
 	else {
-			HRESULT hr;										// we calculate a daily FFMC if we have a previous daily FFMC, OR if we are using the Lawson or Hybrid
+			HRESULT hr;										// we calculate a daily FFMC if we have a previous daily FFMC, OR if we are using the Lawson
 														// techniques (init FFMC value is then treated as the previous daily FFMC)
 			const WTime dayNeutral(m_DayStart, WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST, 1);	// convert to a timezone-neutral time
 			const WTime dayLST(dayNeutral, WTIME_FORMAT_AS_LOCAL, -1);				// gets us the start of the true LST day
@@ -205,7 +205,6 @@ void DailyCondition::calculateHourlyFFMC() {
 			if (calculate) {
 				double temp, rh, precip, ws, gust, wd, dew;
 				switch (m_weatherCondition->m_options & WeatherCondition::FFMC_MASK) {
-					case WeatherCondition::FFMC_HYBRID:			// so we have to default to Lawson
 					case WeatherCondition::FFMC_LAWSON:		{	double prev_ffmc;
 								bool spec;
 								m_weatherCondition->DailyFFMC(m_DayStart , &prev_ffmc, &spec);
@@ -256,32 +255,6 @@ void DailyCondition::calculateHourlyFFMC() {
 			hourlyWeather(loop, &temp, &rh, &precip, &ws, &gust, &wd, &dew);
 
 			switch (m_weatherCondition->m_options & WeatherCondition::FFMC_MASK) {
-				case WeatherCondition::FFMC_HYBRID:		{
-
-							double prev_ffmc, prev_hr_ffmc;
-							bool spec;
-							m_weatherCondition->DailyFFMC(m_DayStart , &prev_ffmc, &spec);
-							
-							WTime prevLoop(loop), loopStop(loop);
-							prevLoop -= WTimeSpan(0, 1, 0, 0);
-							loopStop -= WTimeSpan(0, 48, 0, 0);
-							if (!i)
-								m_weatherCondition->HourlyFFMC(prevLoop, &prev_hr_ffmc);
-							else	prev_hr_ffmc = m_calc_hr[(std::uint16_t)(i - 1)].FFMC;
-							
-							std::array<double, 48> rain48;
-
-							rain48[0] = precip;
-							std::int16_t ii;
-							for (ii = 1; prevLoop > loopStop; prevLoop -= WTimeSpan(0, 1, 0, 0), ii++)
-								rain48[ii] = m_weatherCondition->GetHourlyRain(prevLoop);
-							for (; ii < 48; ii++)
-								rain48[ii] = 0.0;
-
-							m_weatherCondition->m_fwi->HourlyFFMC_Hybrid(prev_ffmc, m_calc_day.dFFMC, prev_hr_ffmc, rain48, temp, rh, ws,
-							    (std::uint32_t)loop.GetTimeOfDay(WTIME_FORMAT_AS_LOCAL).GetTotalSeconds(), &val);
-							break;
-						}
 				case WeatherCondition::FFMC_LAWSON:		{	double prev_ffmc;
 							bool spec;
 							m_weatherCondition->DailyFFMC(m_DayStart , &prev_ffmc, &spec);
@@ -455,7 +428,7 @@ WISE::WeatherProto::DailyConditions* DailyCondition::serialize(const SerializePr
 				hour->set_allocated_gust(DoubleBuilder().withValue(gust).forProtobuf(options.useVerboseFloats()));
 			hour->set_allocated_precip(DoubleBuilder().withValue(precip).forProtobuf(options.useVerboseFloats()));
 			hour->set_allocated_wd(DoubleBuilder().withValue(ROUND_DECIMAL(CARTESIAN_TO_COMPASS_DEGREE(RADIAN_TO_DEGREE(wd)), 6)).forProtobuf(options.useVerboseFloats()));
-			if ((m_hflags[i] & HOUR_DEWPT_SPECIFIED))
+			if (m_hflags[i] & HOUR_DEWPT_SPECIFIED)
 				hour->set_allocated_dewpoint(DoubleBuilder().withValue(dew).forProtobuf(options.useVerboseFloats()));
 			hour->set_interpolated(isHourIterpolated(i));
 
@@ -499,7 +472,7 @@ DailyCondition* DailyCondition::deserialize(const google::protobuf::Message& pro
 			/// <type>internal</type>
 			valid->add_child_validation("WISE.WeatherProto.DailyConditions", name, validation::error_level::SEVERE,
 				validation::id::object_invalid, proto.GetDescriptor()->name());
-		weak_assert(0);
+		weak_assert(false);
 		throw ISerializeProto::DeserializeError("DailyCondition: Protobuf object invalid", ERROR_PROTOBUF_OBJECT_INVALID);
 	}
 	if (conditions->version() != 1)
@@ -511,7 +484,7 @@ DailyCondition* DailyCondition::deserialize(const google::protobuf::Message& pro
 			/// <type>user</type>
 			valid->add_child_validation("WISE.WeatherProto.DailyConditions", name, validation::error_level::SEVERE,
 				validation::id::version_mismatch, std::to_string(conditions->version()));
-		weak_assert(0);
+		weak_assert(false);
 		throw ISerializeProto::DeserializeError("DailyCondition: Version is invalid", ERROR_PROTOBUF_OBJECT_VERSION_INVALID);
 	}
 
@@ -746,7 +719,7 @@ DailyCondition* DailyCondition::deserialize(const google::protobuf::Message& pro
 					/// Precipitation is out of range of acceptable values.
 					/// </summary>
 					/// <type>user</type>
-					myValid2->add_child_validation("Math.Double", "precip", (precip > 300.0) ? validation::error_level::INFORMATION : validation::error_level::WARNING, validation::id::value_invalid, std::to_string(maxWs), { true, 0.0 }, { true, 300.0 });
+					myValid2->add_child_validation("Math.Double", "precip", (precip > 300.0) ? validation::error_level::INFORMATION : validation::error_level::WARNING, validation::id::value_invalid, std::to_string(precip), { true, 0.0 }, { true, 300.0 });
 				if (precip < 0.0)
 					precip = 0.0;
 				else if (precip > 300.0)
@@ -903,7 +876,7 @@ DailyCondition* DailyCondition::deserialize(const google::protobuf::Message& pro
 		}
 #endif
 
-		m_flags = m_flags | DAY_HOURLY_SPECIFIED;
+		m_flags |= DAY_HOURLY_SPECIFIED;
 
 		for (std::uint32_t i = start; i <= end; i++)
 		{
@@ -1070,7 +1043,7 @@ DailyCondition* DailyCondition::deserialize(const google::protobuf::Message& pro
 			/// <type>internal</type>
 			myValid->add_child_validation("WISE.WeatherProto.DailyConditions", name, validation::error_level::SEVERE,
 				validation::id::incorrect_amt_weather_data, proto.GetDescriptor()->name());
-		weak_assert(0);
+		weak_assert(false);
 		throw std::invalid_argument("DailyCondition: Invalid number of hourly readings");
 	}
 

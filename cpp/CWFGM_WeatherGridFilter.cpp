@@ -98,7 +98,7 @@ CCWFGM_WeatherGridFilter::~CCWFGM_WeatherGridFilter() {
 
 HRESULT CCWFGM_WeatherGridFilter::MT_Lock(Layer *layerThread, bool exclusive, std::uint16_t obtain) {
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine = m_gridEngine(layerThread);
-	if (!gridEngine)	{ weak_assert(0); return ERROR_GRID_UNINITIALIZED; }
+	if (!gridEngine)	{ weak_assert(false); return ERROR_GRID_UNINITIALIZED; }
 
 	HRESULT hr;
 	if (obtain == (std::uint16_t)-1) {
@@ -130,7 +130,7 @@ HRESULT CCWFGM_WeatherGridFilter::GetEventTime(Layer *layerThread, const XY_Poin
 	WTime f_t(from_time, m_timeManager);
 
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine = m_gridEngine(layerThread);
-	if (!gridEngine)							{ weak_assert(0); return ERROR_GRID_UNINITIALIZED; }
+	if (!gridEngine)							{ weak_assert(false); return ERROR_GRID_UNINITIALIZED; }
 	if (!next_event)							return E_POINTER;
 
 	if (flags & (CWFGM_GETEVENTTIME_FLAG_SEARCH_SUNRISE | CWFGM_GETEVENTTIME_FLAG_SEARCH_SUNSET)) {
@@ -171,7 +171,7 @@ HRESULT CCWFGM_WeatherGridFilter::GetWeatherData(Layer *layerThread, const XY_Po
 	const WTime t(time, m_timeManager);
 
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine = m_gridEngine(layerThread);
-	if (!gridEngine)							{ weak_assert(0); return ERROR_GRID_UNINITIALIZED; }
+	if (!gridEngine)							{ weak_assert(false); return ERROR_GRID_UNINITIALIZED; }
 
 	std::uint16_t x = convertX(pt.x, bbox_cache);
 	std::uint16_t y = convertY(pt.y, bbox_cache);
@@ -186,7 +186,7 @@ HRESULT CCWFGM_WeatherGridFilter::GetWeatherDataArray(Layer *layerThread, const 
     IWXData_2d *wx, IFWIData_2d *ifwi, DFWIData_2d *dfwi, bool_2d *wx_valid) {
 	const WTime t(time, m_timeManager);
 
-	if (scale != m_resolution)							{ weak_assert(0); return ERROR_GRID_UNSUPPORTED_RESOLUTION; }
+	if (scale != m_resolution)							{ weak_assert(false); return ERROR_GRID_UNSUPPORTED_RESOLUTION; }
 
 	std::uint16_t x_min = convertX(min_pt.x, nullptr), y_min = convertY(min_pt.y, nullptr);
 	std::uint16_t x_max = convertX(max_pt.x, nullptr), y_max = convertY(max_pt.y, nullptr);
@@ -217,7 +217,7 @@ HRESULT CCWFGM_WeatherGridFilter::GetWeatherDataArray(Layer *layerThread, const 
 	if (y_min > y_max)							return E_INVALIDARG;
 
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine = m_gridEngine(layerThread);
-	if (!gridEngine)							{ weak_assert(0); return ERROR_GRID_UNINITIALIZED; }
+	if (!gridEngine)							{ weak_assert(false); return ERROR_GRID_UNINITIALIZED; }
 
 	IWXData _iwx;
 	IFWIData _ifwi;
@@ -433,7 +433,7 @@ HRESULT CCWFGM_WeatherGridFilter::SetAttribute(std::uint16_t option, const Polym
 									bval = std::get<bool>(var);
 								}
 								catch (std::bad_variant_access&) {
-									weak_assert(0);
+									weak_assert(false);
 									break;
 								}
 								old = m_flags;
@@ -451,7 +451,7 @@ HRESULT CCWFGM_WeatherGridFilter::SetAttribute(std::uint16_t option, const Polym
 									str = std::get<std::string>(var);
 								}
 								catch (std::bad_variant_access&) {
-									weak_assert(0);
+									weak_assert(false);
 									break;
 								}
 								if (str.length()) {
@@ -467,7 +467,7 @@ HRESULT CCWFGM_WeatherGridFilter::SetAttribute(std::uint16_t option, const Polym
 									str = std::get<std::string>(var);
 								}
 								catch (std::bad_variant_access&) {
-									weak_assert(0);
+									weak_assert(false);
 									break;
 								}
 								if (str.length()) {
@@ -483,7 +483,7 @@ HRESULT CCWFGM_WeatherGridFilter::SetAttribute(std::uint16_t option, const Polym
 									str = std::get<std::string>(var);
 								}
 								catch (std::bad_variant_access&) {
-									weak_assert(0);
+									weak_assert(false);
 									break;
 								}
 								m_gisUID = str;
@@ -497,7 +497,7 @@ HRESULT CCWFGM_WeatherGridFilter::SetAttribute(std::uint16_t option, const Polym
 									str = std::get<std::string>(var);
 								}
 								catch (std::bad_variant_access&) {
-									weak_assert(0);
+									weak_assert(false);
 									break;
 								}
 								m_gisPWD = str;
@@ -506,7 +506,7 @@ HRESULT CCWFGM_WeatherGridFilter::SetAttribute(std::uint16_t option, const Polym
 								return S_OK;
 	}
 
-	weak_assert(0);
+	weak_assert(false);
 	return hr;
 }
 
@@ -954,12 +954,12 @@ HRESULT CCWFGM_WeatherGridFilter::fixResolution() {
 	PolymorphicAttribute var;
 
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine;
-	if (!(gridEngine = m_gridEngine(nullptr)))					{ weak_assert(0); return ERROR_GRID_UNINITIALIZED; }
+	if (!(gridEngine = m_gridEngine(nullptr)))					{ weak_assert(false); return ERROR_GRID_UNINITIALIZED; }
 
 	/*POLYMORPHIC CHECK*/
 	try {
 		if (!m_timeManager) {
-			weak_assert(0);
+			weak_assert(false);
 			ICWFGM_CommonData* data;
 			if (FAILED(hr = gridEngine->GetCommonData(nullptr, &data)) || (!data)) return hr;
 			m_timeManager = data->m_timeManager;
@@ -972,7 +972,7 @@ HRESULT CCWFGM_WeatherGridFilter::fixResolution() {
 		gridYLL = std::get<double>(var);
 	}
 	catch (std::bad_variant_access&) {
-		weak_assert(0);
+		weak_assert(false);
 		return ERROR_GRID_UNINITIALIZED;
 	}
 

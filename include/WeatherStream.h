@@ -46,7 +46,6 @@ class WeatherCondition : public ISerializeProto {
 public:
 	static constexpr std::uint32_t USER_SPECIFIED = 0b100;
 	static constexpr std::uint32_t FFMC_VAN_WAGNER = 0x00000001;
-	static constexpr std::uint32_t FFMC_HYBRID = 0x00000002;
 	static constexpr std::uint32_t FFMC_LAWSON = 0x00000003;
 	static constexpr std::uint32_t FFMC_MASK = 0x00000003;
 	static constexpr std::uint32_t FROM_FILE = 0x00000020;
@@ -151,7 +150,7 @@ public:
 	void SetEndTime(WTime &endTime);
 	void GetEndTime(WTime &EndTime);
 
-	__INLINE std::uint32_t NumDays() const				{ return m_readings.GetCount(); };
+	std::uint32_t NumDays() const				{ return m_readings.GetCount(); };
 
 	void calculateValues();
 
