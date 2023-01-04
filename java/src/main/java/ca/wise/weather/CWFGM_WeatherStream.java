@@ -133,8 +133,6 @@ public class CWFGM_WeatherStream implements Serializable, Cloneable {
 			return Boolean.valueOf((m_weatherCondition.getWarnOnSunRiseSet() & SunriseSunsetCalc.NO_SUNSET) != 0);
 		case WEATHER_OPTION.FFMC_VANWAGNER:
 			return Boolean.valueOf((m_weatherCondition.m_options & 0x00000003) == 1);
-		case WEATHER_OPTION.FFMC_HYBRID:
-			return Boolean.valueOf(false);
 		case WEATHER_OPTION.FFMC_LAWSON:
 			return Boolean.valueOf((m_weatherCondition.m_options & 0x00000003) == 3);
 		case WEATHER_OPTION.FWI_USE_SPECIFIED:

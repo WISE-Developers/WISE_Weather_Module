@@ -661,27 +661,6 @@ public class WeatherCondition {
 				}
 				else {
 					switch ((int)(m_options & 0x00000003)) {
-					case 2:
-						WTime dayStart = new WTime(time);
-						dayStart.purgeToDay(FORMAT_AS_LOCAL | FORMAT_WITHDST);
-						double prev_hr_ffmc;
-						dailyFFMC(dayStart , d1, b1);
-
-						dailyFFMC(add(dayStart, new WTimeSpan(0, 18, 0, 0)), d2, b1);
-
-						WTime prevLoop = new WTime(nt2), loopStop = new WTime(nt2);
-						loopStop.subtract(new WTimeSpan(0, 48, 0, 0));
-
-						prev_hr_ffmc = ffmc1;
-
-						double[] rain48 = new double[48];
-						for (short ii = 0; greaterThan(prevLoop, loopStop); prevLoop.subtract(WTimeSpan.Hour), ii++)
-							rain48[ii] = getHourlyRain(prevLoop);
-
-						ifwi.value.dFFMC = Fwi.hourlyFFMCHybrid(d1.value, d2.value, prev_hr_ffmc, rain48, wx.value.temperature, wx.value.rh, wx.value.windSpeed,
-						    time.getTimeOfDay(FORMAT_AS_LOCAL).getTotalSeconds());
-						break;
-
 					case 3:
 						dayStart = new WTime(time);
 						dayStart.purgeToDay(FORMAT_AS_LOCAL | FORMAT_WITHDST);
