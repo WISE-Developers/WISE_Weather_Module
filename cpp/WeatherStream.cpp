@@ -1030,7 +1030,7 @@ HSS_PRAGMA_WARNING_POP
 
 				if ((wd < 0.0) || (wd > 360.0) ||
 				    (min_ws < 0.0) || (max_ws < 0.0) ||
-				    (rh < 0.0) || (rh > 100.0) ||
+					(rh < 0.0) || (rh > 100.0) ||
 				    (precip < 0.0) ||
 				    (min_temp < -50.0) || (min_temp > 60.0) ||
 				    (max_temp < -50.0) || (max_temp > 60.0)) {
@@ -1350,7 +1350,7 @@ int WeatherCondition::GetWord(std::string *source, std::string *strWord)
 }
 
 
-void WeatherCondition::FillDailyLineValue(std::vector<std::string> &header, char *line, char *file_type,double *min_temp, double *max_temp, double *rh, double *precip, double *min_ws, double *max_ws, double *wd)
+void WeatherCondition::FillDailyLineValue(std::vector<std::string> &header, char *line, char *file_type,double *min_temp, double *max_temp, double *rh, double *precip, double *min_ws, double *max_ws, double* min_gust, double* max_gust, double *wd)
 {
 	int i=0;
 	char *context;

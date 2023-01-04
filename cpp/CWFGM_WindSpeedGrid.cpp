@@ -820,71 +820,76 @@ HRESULT CCWFGM_WindSpeedGrid::getWeatherData(ICWFGM_GridEngine *gridEngine, Laye
 
 
 bool CCWFGM_WindSpeedGrid::calculateSpeed(const std::uint16_t x, const std::uint16_t y, const std::uint16_t i, const double windspeed, double *newspeed) const {
-							std::uint16_t index;
-							if (m_sectors[i]->m_entries.size() == 0) {
-							} else if (m_sectors[i]->m_entries.size() == 1) {
-								index = 0;
-								goto LOOKUP;
+	std::uint16_t index;
+	if (m_sectors[i]->m_entries.size() == 0) {
+	}
+	else if (m_sectors[i]->m_entries.size() == 1) {
+		index = 0;
+		goto LOOKUP;
 	}
 	else if ((index = m_sectors[i]->GetSpeedIndex(windspeed)) == (std::uint16_t)-1) {
 		std::uint16_t lower = m_sectors[i]->GetLowerSpeedIndex(windspeed);
 		std::uint16_t higher = m_sectors[i]->GetHigherSpeedIndex(windspeed);
-								if ((lower == (std::uint16_t)-1) && (higher != (std::uint16_t)-1)) {
-									index = higher;
-									goto LOOKUP;
-								} else if ((lower != (std::uint16_t)-1) && (higher == (std::uint16_t)-1)) {
-									index = lower;
-									goto LOOKUP;
-								} else {
-									weak_assert(lower != (std::uint16_t)-1);
-									weak_assert(higher != (std::uint16_t)-1);
-									double ws1, ws2;
+		if ((lower == (std::uint16_t)-1) && (higher != (std::uint16_t)-1)) {
+			index = higher;
+			goto LOOKUP;
+		}
+		else if ((lower != (std::uint16_t)-1) && (higher == (std::uint16_t)-1)) {
+			index = lower;
+			goto LOOKUP;
+		}
+		else {
+			weak_assert(lower != (std::uint16_t)-1);
+			weak_assert(higher != (std::uint16_t)-1);
+			double ws1, ws2;
 
-									std::uint16_t *data = m_sectors[i]->m_entries[lower].m_data;
-									bool *valid = m_sectors[i]->m_entries[lower].m_datavalid;
-									if (valid[this->ArrayIndex(x, y)])
-										ws1 = (((double)data[this->ArrayIndex(x, y)]) / 10.0);
-									else	ws1 = -1.0;
+			std::uint16_t* data = m_sectors[i]->m_entries[lower].m_data;
+			bool* valid = m_sectors[i]->m_entries[lower].m_datavalid;
+			if (valid[this->ArrayIndex(x, y)])
+				ws1 = (((double)data[this->ArrayIndex(x, y)]) / 10.0);
+			else	ws1 = -1.0;
 
-									data = m_sectors[i]->m_entries[higher].m_data;
-									valid = m_sectors[i]->m_entries[higher].m_datavalid;
-									if (valid[this->ArrayIndex(x, y)])
-										ws2 = (((double)data[this->ArrayIndex(x, y)]) / 10.0);
-									else	ws2 = -1.0;
-								
-									if ((ws1 == -1.0) && (ws2 != -1.0)) {
-										index = higher;
-										goto LOOKUP;
-									} else if ((ws1 != -1.0) && (ws2 == -1.0)) {
-										index = lower;
-										goto LOOKUP;
-									} else if ((ws1 != -1.0) && (ws2 != -1.0)) {
-										double ds1 = m_sectors[i]->m_entries[higher].m_speed - m_sectors[i]->m_entries[lower].m_speed;
+			data = m_sectors[i]->m_entries[higher].m_data;
+			valid = m_sectors[i]->m_entries[higher].m_datavalid;
+			if (valid[this->ArrayIndex(x, y)])
+				ws2 = (((double)data[this->ArrayIndex(x, y)]) / 10.0);
+			else	ws2 = -1.0;
+
+			if ((ws1 == -1.0) && (ws2 != -1.0)) {
+				index = higher;
+				goto LOOKUP;
+			}
+			else if ((ws1 != -1.0) && (ws2 == -1.0)) {
+				index = lower;
+				goto LOOKUP;
+			}
+			else if ((ws1 != -1.0) && (ws2 != -1.0)) {
+				double ds1 = m_sectors[i]->m_entries[higher].m_speed - m_sectors[i]->m_entries[lower].m_speed;
 				double ds2 = windspeed - m_sectors[i]->m_entries[lower].m_speed;
 				*newspeed = (ws2 - ws1) / ds1 * ds2 + m_sectors[i]->m_entries[lower].m_speed;
 				return true;
 			}
-									}
-								}
+		}
+	}
 	else {
-								LOOKUP:
-								if (m_sectors[i]->m_entries[index].m_data) {
-									std::uint16_t *data = m_sectors[i]->m_entries[index].m_data;
-									bool *valid = m_sectors[i]->m_entries[index].m_datavalid;
-									if (valid[this->ArrayIndex(x, y)]) {
-										double speed = m_sectors[i]->m_entries[index].m_speed;
-										double scale;
-										if (speed > 0.0)
+	LOOKUP:
+		if (m_sectors[i]->m_entries[index].m_data) {
+			std::uint16_t* data = m_sectors[i]->m_entries[index].m_data;
+			bool* valid = m_sectors[i]->m_entries[index].m_datavalid;
+			if (valid[this->ArrayIndex(x, y)]) {
+				double speed = m_sectors[i]->m_entries[index].m_speed;
+				double scale;
+				if (speed > 0.0)
 					scale = windspeed / speed;
-										else	scale = 1.0;
-										double in_speed = (((double)data[this->ArrayIndex(x, y)]) / 10.0);
+				else	scale = 1.0;
+				double in_speed = (((double)data[this->ArrayIndex(x, y)]) / 10.0);
 				*newspeed = scale * in_speed;
 				return true;
 			}
-									}
-		else {
-									weak_assert(false); // this shouldn't be the case
 								}
+		else {
+			weak_assert(false); // this shouldn't be the case
+		}
 	}
 	return false;
 }

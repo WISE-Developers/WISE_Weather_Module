@@ -676,8 +676,6 @@ DailyCondition* DailyCondition::deserialize(const google::protobuf::Message& pro
 				/// </summary>
 				/// <type>user</type>
 				myValid2->add_child_validation("Math.Double", "maxGust", validation::error_level::INFORMATION, validation::id::missing_daily_weather_data, "maxGust");
-//			else
-//				throw std::invalid_argument("Error: WISE.WeatherProto.DailyConditions.DayWeather: Missing maxGust value");
 		}
 
 		if (minGust > maxGust) {
@@ -993,12 +991,10 @@ DailyCondition* DailyCondition::deserialize(const google::protobuf::Message& pro
 			if (hour.has_dewpoint())
 			{
 				dew = DoubleBuilder().withProtobuf(hour.dewpoint(), hourValid, "dewPoint").getValue();
-				m_hflags[i] |= HOUR_DEWPT_SPECIFIED;
 			}
 			else
 			{
 				dew = -400.0;
-				m_hflags[i] &= ~HOUR_DEWPT_SPECIFIED;
 			}
 
 			setHourlyWeather(i, temp, rh, precip, ws, gust, wd, dew);

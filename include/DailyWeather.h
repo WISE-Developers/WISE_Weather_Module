@@ -68,7 +68,7 @@ public:
 		m_hourly_dewpt_temp[24],
 		m_hourly_rh[24],
 		m_hourly_ws[24],
-			m_hourly_gust[24],
+		m_hourly_gust[24],
 		m_hourly_precip[24];
 	double	m_hourly_wd[24];				// hourly conditions that may be given or calculated from daily values
 
@@ -76,14 +76,14 @@ public:
 		m_daily_max_temp,
 		m_daily_min_ws,
 		m_daily_max_ws,
-			m_daily_min_gust,
-			m_daily_max_gust,
+		m_daily_min_gust,
+		m_daily_max_gust,
 		m_daily_rh,
 		m_daily_precip;
 	double	m_daily_wd;					// daily conditions for us to work with
 
 protected:
-	void hourlyWeather_Serialize(const std::uint32_t hour, double *temp, double *rh, double *precip, double *ws, double *wd, double *dew) const {
+	void hourlyWeather_Serialize(const std::uint32_t hour, double *temp, double *rh, double *precip, double *ws, double *gust, double *wd, double *dew) const {
 		*temp = m_hourly_temp[hour];
 		*rh = m_hourly_rh[hour];
 		*precip = m_hourly_precip[hour];
@@ -208,6 +208,7 @@ public:
 	std::uint16_t calculateTemp();
 	void calculateRH();
 	std::uint16_t calculateWS();
+	std::uint16_t calculateGust();
 	void calculateDewPtTemp();
 };
 

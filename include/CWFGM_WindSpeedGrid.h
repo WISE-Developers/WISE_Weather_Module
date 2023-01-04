@@ -488,13 +488,7 @@ public:
     virtual NO_THROW HRESULT PutCommonData(Layer* layerThread, ICWFGM_CommonData* pVal) override;
 
 #ifndef DOXYGEN_IGNORE_CODE
-		std::uint32_t ArrayIndex(std::uint16_t x, std::uint16_t y)
-		{
-			if ((m_ysize == (std::uint16_t)-1) && (m_xsize == (std::uint16_t)-1)) {
-				m_gridEngine(nullptr)->GetDimensions(0, &m_xsize, &m_ysize);
-			}
-			return (m_ysize - (y + 1)) * m_xsize + x;
-		};
+		std::uint32_t ArrayIndex(std::uint16_t x, std::uint16_t y) const;
 
 	protected:
 		WTimeManager				*m_timeManager;
@@ -528,7 +522,8 @@ public:
 	virtual std::optional<bool> isdirty(void) const noexcept override { return m_bRequiresSave; }
 
 private:
-		HRESULT getWeatherData(ICWFGM_GridEngine *gridEngine, Layer *layerThread, const XY_Point &pt, const HSS_Time::WTime &time, std::uint32_t interpolate_method, IWXData *wx, IFWIData *ifwi, DFWIData *dfwi, bool *wx_valid, XY_Rectangle *bbox_cache);
+	HRESULT getWeatherData(ICWFGM_GridEngine *gridEngine, Layer *layerThread, const XY_Point &pt, const HSS_Time::WTime &time, std::uint32_t interpolate_method, IWXData *wx, IFWIData *ifwi, DFWIData *dfwi, bool *wx_valid, XY_Rectangle *bbox_cache);
+	bool calculateSpeed(const std::uint16_t x, const std::uint16_t y, const std::uint16_t i, const double windspeed, double *newspeed) const;
 #endif
 };
 

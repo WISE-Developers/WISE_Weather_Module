@@ -252,11 +252,12 @@ public class DailyCondition extends DailyWeather implements Serializable {
 				}
 
 				if (calculate) {
-					OutVariable<Double> temp, rh, precip, ws, wd, dew;
+					OutVariable<Double> temp, rh, precip, ws, wg, wd, dew;
 					temp = new OutVariable<Double>();
 					rh = new OutVariable<Double>();
 					precip = new OutVariable<Double>();
 					ws = new OutVariable<Double>();
+					wg = new OutVariable<Double>();
 					wd = new OutVariable<Double>();
 					dew = new OutVariable<Double>();
 					switch ((int)(m_weatherCondition.m_options & 0x00000003)) {
@@ -266,14 +267,14 @@ public class DailyCondition extends DailyWeather implements Serializable {
 							OutVariable<Double> prev_ffmc = new OutVariable<Double>();
 							m_weatherCondition.dailyFFMC(m_dayStart, prev_ffmc, spec);
 
-							hourlyWeather(loop, temp, rh, precip, ws, wd, dew);
+							hourlyWeather(loop, temp, rh, precip, ws, wg, wd, dew);
 							val = Fwi.hourlyFFMCLawsonContiguous(prev_ffmc.value,
 							    m_calc_day.dFFMC, rh.value, rh.value, rh.value, subtract(loop, dayLST).getTotalSeconds());
 
 							break;
 						default:
 							in_ffmc = m_calc_hr[i + 1].dFFMC;
-							hourlyWeather(add(loop, WTimeSpan.Hour), temp, rh, precip, ws, wd, dew);
+							hourlyWeather(add(loop, WTimeSpan.Hour), temp, rh, precip, ws, wg, wd, dew);
 							val = Fwi.hourlyFFMCVanWagnerPrevious(in_ffmc, precip.value, temp.value, rh.value, ws.value);
 
 							break;
@@ -303,14 +304,15 @@ public class DailyCondition extends DailyWeather implements Serializable {
 			}
 
 			if (calculate) {
-				OutVariable<Double> temp, rh, precip, ws, wd, dew;
+				OutVariable<Double> temp, rh, precip, ws, wg, wd, dew;
 				temp = new OutVariable<Double>();
 				rh = new OutVariable<Double>();
 				precip = new OutVariable<Double>();
 				ws = new OutVariable<Double>();
+				wg = new OutVariable<Double>();
 				wd = new OutVariable<Double>();
 				dew = new OutVariable<Double>();
-				hourlyWeather(loop, temp, rh, precip, ws, wd, dew);
+				hourlyWeather(loop, temp, rh, precip, ws, wg, wd, dew);
 
 				OutVariable<Boolean> spec = new OutVariable<Boolean>();
 				OutVariable<Double> prev_ffmc = new OutVariable<Double>();

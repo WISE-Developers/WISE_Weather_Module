@@ -49,7 +49,6 @@ DailyWeather::DailyWeather(WeatherCondition *wc)
 	}
 
 	m_dblTempDiff = 0.0;
-	m_dblWSDiff = 0.0;
 }
 
 
@@ -722,7 +721,7 @@ std::uint16_t DailyWeather::calculateGust() {					// ***************************
 		m_calc_tx = yesterday->m_SolarNoon + WTimeSpan((std::int64_t)(m_weatherCondition->m_wind_beta * 60.0 * 60.0));	// time of maximum wind
 		/* yesterday's maximum windspeed */
 			// is yesterday specified in hours ?
-		if (yesterday->m_flags & DAY_HOURLY_SPECIFIED/*m_isHourlySpecified*/)
+		if (yesterday->m_flags & DAY_HOURLY_SPECIFIED)
 			// interpolate from hourly values
 			m_calc_sunset =
 				// last hour before sunset plus
@@ -735,13 +734,13 @@ std::uint16_t DailyWeather::calculateGust() {					// ***************************
 			// recall calculated value from yesterday
 			m_calc_sunset = yesterday->m_daily_max_gust;
 
-		if (!(yesterday->m_flags & DAY_HOURLY_SPECIFIED)/*m_isHourlySpecified*/)
+		if (!(yesterday->m_flags & DAY_HOURLY_SPECIFIED))
 		{
 			// yes do hourly values after maximum yesterday until midnight yesterday
 			int i;
 			WTime daily_time((std::uint64_t)0, m_weatherCondition->m_time.GetTimeManager());
 
-			if (yesterday->m_flags & DAY_HOURLY_SPECIFIED/*m_isHourlySpecified*/)
+			if (yesterday->m_flags & DAY_HOURLY_SPECIFIED)
 				// interpolate from hourly values
 				m_calc_sunset =
 				// last hour before sunset plus
@@ -761,9 +760,7 @@ std::uint16_t DailyWeather::calculateGust() {					// ***************************
 				daily_time += WTimeSpan(0, 1, 0, 0), i++
 				)
 			{// At first it starts from m_calc_ts; Actually it should start with max time;
-		//                yesterday->m_hourlyWS[i] = exp_function(daily_time);
 				double tempValue = exp_WindFunc(daily_time);
-				//		double tempValue=exp_function(daily_time);
 				if (tempValue < 0)
 					tempValue = 0;
 				yesterday->m_hourly_gust[i] = (float)tempValue;
@@ -784,14 +781,10 @@ std::uint16_t DailyWeather::calculateGust() {					// ***************************
 
 	WTime daily_time((std::uint64_t)0, m_weatherCondition->m_time.GetTimeManager());
 	std::uint16_t i;
-	// ***** RWB: added August 16th
-			// fill in midnight until tn today
 	for (i = 0, daily_time = m_DayStart; daily_time < m_calc_tn; daily_time += WTimeSpan(0, 1, 0, 0))
 	{
-		//			m_hourlyWS[i++] = exp_function(daily_time);
 		double tempValue;
 		tempValue = exp_WindFunc(daily_time);
-		//		tempValue=exp_function(daily_time);
 		if (tempValue < 0)
 			tempValue = 0;
 		m_hourly_gust[i++] = (float)tempValue;
@@ -800,7 +793,7 @@ std::uint16_t DailyWeather::calculateGust() {					// ***************************
 
 	m_calc_tx = m_SolarNoon + WTimeSpan((std::int64_t)(m_weatherCondition->m_wind_beta * 60.0 * 60.0));	// time of maximum wind
 
-	for (; daily_time <= m_calc_tx/*m_SunSet*/; daily_time += WTimeSpan(0, 1, 0, 0))	//Originally is m_calc_ts
+	for (; daily_time <= m_calc_tx; daily_time += WTimeSpan(0, 1, 0, 0))	//Originally is m_calc_ts
 	{
 		double tempValue;
 		tempValue = sin_function(daily_time);
