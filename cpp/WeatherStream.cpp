@@ -1501,12 +1501,12 @@ WISE::WeatherProto::WeatherStream* WeatherCondition::serialize(const SerializePr
 	stream->set_allocated_hffmc(DoubleBuilder().withValue(m_initialHFFMC).forProtobuf(options.useVerboseFloats()));
 	switch (m_options & FFMC_MASK)
 	{
+	case FFMC_LAWSON:
+		stream->set_hffmcmethod(WISE::WeatherProto::WeatherStream_FFMCMethod_LAWSON);
+		break;
 	case FFMC_VAN_WAGNER:
 	default:
 		stream->set_hffmcmethod(WISE::WeatherProto::WeatherStream_FFMCMethod_VAN_WAGNER);
-		break;
-	case FFMC_HYBRID:
-		stream->set_hffmcmethod(WISE::WeatherProto::WeatherStream_FFMCMethod_LAWSON);
 		break;
 	}
 
