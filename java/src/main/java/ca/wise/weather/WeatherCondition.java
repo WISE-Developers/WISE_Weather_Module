@@ -662,7 +662,7 @@ public class WeatherCondition {
 				else {
 					switch ((int)(m_options & 0x00000003)) {
 					case 3:
-						dayStart = new WTime(time);
+						WTime dayStart = new WTime(time);
 						dayStart.purgeToDay(FORMAT_AS_LOCAL | FORMAT_WITHDST);
 						WTime dayNeutral = new WTime(dayStart, FORMAT_AS_LOCAL | FORMAT_WITHDST, (short)1);
 						WTime dayStartLst = new WTime(dayNeutral, FORMAT_AS_LOCAL, (short)-1);
