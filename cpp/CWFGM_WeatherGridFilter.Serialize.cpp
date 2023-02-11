@@ -40,22 +40,9 @@
 //
 
 
-HRESULT CCWFGM_WeatherGridFilter::ImportPolygons(const std::string & file_path, const std::vector<std::string> *permissible_drivers) {
-	if (!file_path.length())							return E_INVALIDARG;
+HRESULT CCWFGM_WeatherGridFilter::ImportPolygons(const std::filesystem::path & file_path, const std::vector<std::string_view> &permissible_drivers) {
+	if (file_path.empty())								return E_INVALIDARG;
 	if (!m_gridEngine(nullptr))							return ERROR_GRID_UNINITIALIZED;
-
-	std::string csPath(file_path);
-
-	const char **pd;
-	if (permissible_drivers && permissible_drivers->size() > 0) {
-		pd = (const char **)malloc(sizeof(char *) * (size_t)(permissible_drivers->size() + 1));
-		std::uint32_t i;
-		for (i = 0; i < (std::uint32_t)permissible_drivers->size(); i++) {
-			pd[i] = strdup((*permissible_drivers)[i].c_str());
-		}
-		pd[i] = NULL;
-	}
-	else pd = NULL;
 
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine;
 	HRESULT hr;
@@ -66,22 +53,20 @@ HRESULT CCWFGM_WeatherGridFilter::ImportPolygons(const std::string & file_path, 
 	CSemaphoreEngage lock(GDALClient::GDALClient::getGDALMutex(), true);
 
 	if ((gridEngine = m_gridEngine(nullptr)) != NULL) {
-		if (FAILED(hr = gridEngine->GetDimensions(0, &xdim, &ydim)))					{ if (pd) { std::uint32_t i = 0; while (pd[i]) free((APTR)pd[i++]); free(pd); } return hr; }
+		if (FAILED(hr = gridEngine->GetDimensions(0, &xdim, &ydim)))								{ return hr; }
 
 		PolymorphicAttribute var;
-		if (FAILED(hr = gridEngine->GetAttribute(0, CWFGM_GRID_ATTRIBUTE_PLOTRESOLUTION, &var)))	{ if (pd) { std::uint32_t i = 0; while (pd[i]) free((APTR)pd[i++]); free(pd); } return hr; }
+		if (FAILED(hr = gridEngine->GetAttribute(0, CWFGM_GRID_ATTRIBUTE_PLOTRESOLUTION, &var)))	{ return hr; }
 		try {
 			gridResolution = std::get<double>(var);
 		}
 		catch (std::bad_variant_access&) {
 			weak_assert(false);
-			if (pd)
-				free(pd);
 			return E_FAIL;
 		}
 
 		/*POLYMORPHIC CHECK*/
-		if (FAILED(hr = gridEngine->GetAttribute(0, CWFGM_GRID_ATTRIBUTE_SPATIALREFERENCE, &var)))	{ if (pd) { std::uint32_t i = 0; while (pd[i]) free((APTR)pd[i++]); free(pd); } return hr; } 
+		if (FAILED(hr = gridEngine->GetAttribute(0, CWFGM_GRID_ATTRIBUTE_SPATIALREFERENCE, &var)))	{ return hr; } 
 		std::string projection;
 		
 		try { projection = std::get<std::string>(var); } catch (std::bad_variant_access&) { weak_assert(false); return ERROR_PROJECTION_UNKNOWN; };
@@ -91,7 +76,6 @@ HRESULT CCWFGM_WeatherGridFilter::ImportPolygons(const std::string & file_path, 
 		weak_assert(false);
 //		if (oSourceSRS)
 //			OSRDestroySpatialReference(oSourceSRS);
-		if (pd) { std::uint32_t i = 0; while (pd[i]) free((APTR)pd[i++]); free(pd); }
 		return ERROR_GRID_UNINITIALIZED;
 	}
 //	XY_Point ll(0.0 - gridXLL, 0.0 - gridYLL);
@@ -99,7 +83,7 @@ HRESULT CCWFGM_WeatherGridFilter::ImportPolygons(const std::string & file_path, 
 	XY_PolyLLSet set;
 	set.SetCacheScale(m_resolution);
 
-	if (SUCCEEDED(hr = set.ImportPoly(pd, csPath.c_str(), oSourceSRS))) {
+	if (SUCCEEDED(hr = set.ImportPoly(permissible_drivers, file_path, oSourceSRS))) {
 //		set.TranslateXY(ll);
 //		set.ScaleXY(1.0 / gridResolution);
 
@@ -111,7 +95,6 @@ HRESULT CCWFGM_WeatherGridFilter::ImportPolygons(const std::string & file_path, 
 	}
 	if (oSourceSRS)
 		OSRDestroySpatialReference(oSourceSRS);
-	if (pd) { std::uint32_t i = 0; while (pd[i]) free((APTR)pd[i++]); free(pd); }
 	return hr;
 }
 
@@ -175,7 +158,8 @@ HRESULT CCWFGM_WeatherGridFilter::ImportPolygonsWFS(const std::string & url, con
 	layers.push_back(csLayer);
 	XY_PolyLLSet pset;
 	std::string URI = prepareUri(csURL);
-	if (SUCCEEDED(hr = set.ImportPoly(NULL, URI.c_str(), oSourceSRS, NULL, &layers))) {
+	const std::vector<std::string_view> drivers;
+	if (SUCCEEDED(hr = set.ImportPoly(drivers, URI.c_str(), oSourceSRS, NULL, &layers))) {
 		m_polySet.RemoveAllPolys();
 		XY_PolyLL *p;
 		while ((p = set.RemHead()) != NULL)
@@ -194,10 +178,9 @@ HRESULT CCWFGM_WeatherGridFilter::ImportPolygonsWFS(const std::string & url, con
 }
 
 
-HRESULT CCWFGM_WeatherGridFilter::ExportPolygons(const std::string & driver_name, const std::string & projection, const std::string & file_path) {
-	if ((!driver_name.length()) || (!file_path.length()))
+HRESULT CCWFGM_WeatherGridFilter::ExportPolygons(std::string_view driver_name, const std::string & projection, const std::filesystem::path & file_path) {
+	if ((!driver_name.length()) || (file_path.empty()))
 		return E_INVALIDARG;
-	std::string csPath(file_path), csDriverName(driver_name), csProjection(projection);
 
 	if (!m_polySet.NumPolys())
 		return E_FAIL;
@@ -207,7 +190,7 @@ HRESULT CCWFGM_WeatherGridFilter::ExportPolygons(const std::string & driver_name
 	HRESULT hr;
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine;
 	OGRSpatialReferenceH oSourceSRS = NULL;
-	OGRSpatialReferenceH oTargetSRS = CCoordinateConverter::CreateSpatialReferenceFromStr(csProjection.c_str());
+	OGRSpatialReferenceH oTargetSRS = CCoordinateConverter::CreateSpatialReferenceFromStr(projection.c_str());
 
 	if ((gridEngine = m_gridEngine(nullptr)) != nullptr) {
 		PolymorphicAttribute var;
@@ -237,7 +220,7 @@ HRESULT CCWFGM_WeatherGridFilter::ExportPolygons(const std::string & driver_name
 	}
 
 	set.SetCacheScale(m_resolution);
-	hr = set.ExportPoly(csDriverName.c_str(), csPath.c_str(), oSourceSRS, oTargetSRS);
+	hr = set.ExportPoly(driver_name, file_path, oSourceSRS, oTargetSRS);
 	if (oSourceSRS)
 		OSRDestroySpatialReference(oSourceSRS);
 	if (oTargetSRS)
@@ -517,7 +500,8 @@ CCWFGM_WeatherGridFilter *CCWFGM_WeatherGridFilter::deserialize(const google::pr
 			auto vt2 = validation::conditional_make_object(v, "WISE.WeatherProto.WeatherGridFilter.shape", name);
 			auto v2 = vt2.lock();
 
-			if (FAILED(hr = ImportPolygons(filter->filename(), sdata->permissible_drivers))) {
+			std::filesystem::path fpath(filter->filename());
+			if (FAILED(hr = ImportPolygons(fpath, *sdata->permissible_drivers))) {
 				if (v2) {
 					switch (hr) {
 					case E_POINTER:						v2->add_child_validation("string", "shape.filename", validation::error_level::SEVERE, validation::id::e_pointer, filter->filename()); break;

@@ -35,7 +35,7 @@ using namespace HSS_Time;
 class SerializeWeatherGridFilterData : public ISerializationData
 {
 public:
-	std::vector<std::string> *permissible_drivers;
+	std::vector<std::string_view> *permissible_drivers;
 };
 
 #ifdef HSS_SHOULD_PRAGMA_PACK
@@ -127,7 +127,7 @@ public:
 		\retval	ERROR_HANDLE_DISK_FULL Disk full
 		\retval	ERROR_FILE_EXISTS	File already exists.
 	*/
-	virtual NO_THROW HRESULT ImportPolygons(const std::string & file_path, const std::vector<std::string> *permissible_drivers);
+	virtual NO_THROW HRESULT ImportPolygons(const std::filesystem::path & file_path, const std::vector<std::string_view> &permissible_drivers);
 	/**
 		This method imports polygons from the specified WFS, looking in the identified layer.  Imported data is automatically reprojected into the grid projection during import.
 		\param	url		Identifies the WFS provider.
@@ -158,7 +158,7 @@ public:
 		\retval	S_FALSE	If asking for values where the appropriate array has not been initialized.
 		\retval	E_INVALIDARG	Invalid arguments.
 	*/
-	virtual NO_THROW HRESULT ExportPolygons(const std::string & driver_name, const std::string & projection, const std::string & file_path);
+	virtual NO_THROW HRESULT ExportPolygons(std::string_view driver_name, const std::string & projection, const std::filesystem::path & file_path);
 	/**
 		This method exports polygons to the specified WFS, to the identified layer.  Exported data is in the grid's projection.
 		\param	url		Identifies the WFS provider.

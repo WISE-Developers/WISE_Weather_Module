@@ -991,10 +991,12 @@ DailyCondition* DailyCondition::deserialize(const google::protobuf::Message& pro
 			if (hour.has_dewpoint())
 			{
 				dew = DoubleBuilder().withProtobuf(hour.dewpoint(), hourValid, "dewPoint").getValue();
+				m_hflags[i] |= HOUR_DEWPT_SPECIFIED;
 			}
 			else
 			{
 				dew = -400.0;
+				m_hflags[i] &= ~HOUR_DEWPT_SPECIFIED;
 			}
 
 			setHourlyWeather(i, temp, rh, precip, ws, gust, wd, dew);
