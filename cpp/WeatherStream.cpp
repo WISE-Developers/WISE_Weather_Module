@@ -818,7 +818,7 @@ bool WeatherCondition::CumulativePrecip(const WTime &time, const WTimeSpan &dura
 	}
 	if (i < hrs)
 		*rain += m_initialRain;
-	return S_OK;
+	return true;
 }
 
 
