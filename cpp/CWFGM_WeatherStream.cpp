@@ -1,5 +1,5 @@
 /**
- * WISE_Weather_Module: CWFGM_WeatherStream.h
+ * WISE_Weather_Module: CWFGM_WeatherStream.cpp
  * Copyright (C) 2023  WISE
  * 
  * This program is free software: you can redistribute it and/or modify
