@@ -898,7 +898,7 @@ bool CCWFGM_WindSpeedGrid::calculateSpeed(const std::uint16_t x, const std::uint
 HRESULT CCWFGM_WindSpeedGrid::PutGridEngine(Layer *layerThread, ICWFGM_GridEngine *newVal) {
 	HRESULT hr = ICWFGM_GridEngine::PutGridEngine(layerThread, newVal);
 	if (SUCCEEDED(hr) && m_gridEngine(nullptr)) {
-		HRESULT hr = fixResolution();
+		hr = fixResolution();
 		weak_assert(SUCCEEDED(hr));
 	}
 	return hr;
@@ -917,7 +917,7 @@ HRESULT CCWFGM_WindSpeedGrid::PutCommonData(/* [in] */ Layer* layerThread, /* [i
 
 HRESULT CCWFGM_WindSpeedGrid::fixResolution() {
 	HRESULT hr;
-	double gridResolution, gridXLL, gridYLL, temp;
+	double gridResolution, gridXLL, gridYLL;
 	PolymorphicAttribute var;
 
 	boost::intrusive_ptr<ICWFGM_GridEngine> gridEngine;

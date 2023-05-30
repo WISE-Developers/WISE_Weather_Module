@@ -600,7 +600,6 @@ CCWFGM_WindDirectionGrid* CCWFGM_WindDirectionGrid::deserialize(const google::pr
 			auto xsize = defaults.xsize();
 			auto ysize = defaults.ysize();
 
-
 			USHORT gridXDim, gridYDim;
 			HRESULT hr;
 			if (FAILED(hr = gridEngine->GetDimensions(0, &gridXDim, &gridYDim)))
