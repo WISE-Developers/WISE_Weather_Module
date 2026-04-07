@@ -275,6 +275,21 @@ HRESULT CCWFGM_WeatherGridFilter::GetWeatherDataArray(Layer *layerThread, const 
 HRESULT CCWFGM_WeatherGridFilter::getWeatherData(ICWFGM_GridEngine *gridEngine, Layer * layerThread, const XY_Point &pt, const HSS_Time::WTime &time, std::uint64_t interpolate_method, IWXData *wx, IFWIData *ifwi, DFWIData *dfwi, bool *wx_valid, XY_Rectangle *bbox_cache) {
 	HRESULT hr;
 
+	/* FILTER CHAIN TRACE — log which filter, time window, and whether we're active */
+	{
+		static int _gwd_call = 0;
+		if (_gwd_call < 10) {
+			bool _in_window = (time >= m_lStartTime) && (time <= m_lEndTime);
+			fprintf(stderr, "[GWD#%d] filter=%p landscape=%d polys=%d in_window=%d time=%lld start=%lld end=%lld\n",
+				_gwd_call, (void*)this, (int)m_landscape, (int)m_polySet.NumPolys(),
+				(int)_in_window,
+				(long long)time.GetTotalSeconds(),
+				(long long)m_lStartTime.GetTotalSeconds(),
+				(long long)m_lEndTime.GetTotalSeconds());
+		}
+		_gwd_call++;
+	}
+
 	if ((time >= m_lStartTime) && (time <= m_lEndTime))
 	{										// if we are in the valid times for this filter, then let's see if the filter changes any data.
 		IWXData c_wx;
@@ -721,6 +736,29 @@ bool CCWFGM_WeatherGridFilter::GetWeatherInfoInPoly(const XY_Point &pt, IWXData 
 		inArea = 2;
 	else
 		inArea = m_polySet.PointInArea(XY_Point(pt.x, pt.y));
+
+	/* WEATHER FILTER TRACE — log filter identity, polygon state, PointInArea result */
+	{
+		static int _wf_call = 0;
+		static const void* _last_filter = nullptr;
+		if ((void*)this != _last_filter || _wf_call < 20) {
+			fprintf(stderr, "[WF-PIA#%d] filter=%p landscape=%d numPolys=%d pt=(%.4f,%.4f) inArea=%d\n",
+				_wf_call, (void*)this, (int)m_landscape, (int)m_polySet.NumPolys(),
+				pt.x, pt.y, inArea);
+			if (m_polySet.NumPolys() > 0 && _wf_call < 5) {
+				XY_PolyLL *_p = m_polySet.LH_Head();
+				if (_p && _p->LN_Succ()) {
+					XY_PolyNode *_n = _p->LH_Head();
+					fprintf(stderr, "[WF-POLY#%d] poly0: npts=%d first=(%.4f,%.4f)\n",
+						_wf_call, _p->NumPoints(),
+						_n ? _n->x : -1.0, _n ? _n->y : -1.0);
+				}
+			}
+			_last_filter = (void*)this;
+		}
+		_wf_call++;
+	}
+
 	bool calc_dew = false;
 	if ((inArea) && (!(inArea & 1))) {
 		switch (m_poly_temp_op) {
