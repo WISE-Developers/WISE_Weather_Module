@@ -356,11 +356,17 @@ HRESULT WeatherUtilities::GetCalculatedIFWIValues(ICWFGM_GridEngine *gridEngine,
 						return hr;
 					}
 					// compute spatially interpolated instantaneous FWI values for the current time
+					{ static int _lc=0; if(_lc<3){_lc++;
+					  fprintf(stderr,"[LAWSON-IN#%d] p_dFFMC=%.4f t_dFFMC=%.4f precip=%.4f temp=%.4f rh0=%.4f rh=%.4f rh1=%.4f ws=%.4f secs=%lu\n",
+					    _lc, p_dfwi.dFFMC, t_dfwi.dFFMC, wx->Precipitation, wx->Temperature, wh0.RH, wx->RH, wh1.RH, wx->WindSpeed, (unsigned long)secs.GetTotalSeconds());
+					  fflush(stderr);}}
 					if (FAILED(hr = m_fwi.HourlyFFMC_Lawson_Contiguous(p_dfwi.dFFMC, t_dfwi.dFFMC, wx->Precipitation, wx->Temperature, wh0.RH, wx->RH, wh1.RH, wx->WindSpeed, (unsigned long)secs.GetTotalSeconds(), &ifwi->FFMC)))
 					{
 						weak_assert(false);
 						return hr;
 					}
+					{ static int _lo=0; if(_lo<3){_lo++;
+					  fprintf(stderr,"[LAWSON-OUT#%d] FFMC=%.6f\n", _lo, ifwi->FFMC);fflush(stderr);}}
 					if (ifwi->FFMC != ofwi.FFMC)
 						ifwi->SpecifiedBits |= IFWIDATA_OVERRODE_FFMC;
 					break;
