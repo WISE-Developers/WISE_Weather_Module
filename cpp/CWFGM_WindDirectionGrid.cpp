@@ -888,7 +888,7 @@ HRESULT CCWFGM_WindDirectionGrid::getWeatherData(ICWFGM_GridEngine *gridEngine, 
 HRESULT CCWFGM_WindDirectionGrid::PutGridEngine(Layer *layerThread, ICWFGM_GridEngine *newVal) {
 	HRESULT hr = ICWFGM_GridEngine::PutGridEngine(layerThread, newVal);
 	if (SUCCEEDED(hr) && m_gridEngine(nullptr)) {
-		HRESULT hr = fixResolution();
+		hr = fixResolution();
 		weak_assert(SUCCEEDED(hr));
 	}
 	return hr;

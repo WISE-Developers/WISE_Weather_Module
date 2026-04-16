@@ -236,7 +236,7 @@ void DailyCondition::calculateHourlyFFMC() {
 	}
 
     #ifdef _DEBUG
-	di = (std::uint16_t)loop.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST);
+	std::int32_t di = (std::uint16_t)loop.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST);
     #endif
 
 	if (end > streamend)

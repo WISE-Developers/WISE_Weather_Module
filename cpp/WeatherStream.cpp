@@ -1140,14 +1140,29 @@ HSS_PRAGMA_WARNING_POP
             std::string fn = fileName;
 			wc = wStream.importHourly(fn, &hr, &size);
 			std::vector<WeatherCollection> weather(wc, wc + size);
-			if (weather.size() == 0)
+
+			auto tempValid = validation::conditional_make_object(valid, "WISE.WeatherProto.HourlyWeather", "hourly");
+			auto weatherValid = tempValid.lock();
+
+			if (weather.size() == 0) {
+				if ((hr == (ERROR_SEVERITY_WARNING | ERROR_START_AFTER_NOON)) && (weatherValid))
+				{
+					weatherValid->add_child_validation("WISE.WeatherProto.HourlyWeather", "hourlyWeather",
+						validation::error_level::SEVERE, validation::id::invalid_weather_start, "Weather cannot start after noon.");
+				}
 				goto DONE;
+			}
 			if ((hr != S_OK) && 
 				 (hr != (ERROR_INVALID_DATA | ERROR_SEVERITY_WARNING)) &&
 				 (hr != ERROR_INVALID_DATA) &&
 				 (hr != WARNING_WEATHER_STREAM_INTERPOLATE) &&
 				 (hr != WARNING_WEATHER_STREAM_INTERPOLATE_BEFORE_INVALID_DATA))
 			{
+				if ((hr == (ERROR_SEVERITY_WARNING | ERROR_START_AFTER_NOON)) && (weatherValid))
+				{
+					weatherValid->add_child_validation("WISE.WeatherProto.HourlyWeather", "hourlyWeather",
+						validation::error_level::SEVERE, validation::id::invalid_weather_start, "Weather cannot start after noon.");
+				}
 				goto DONE;
 			}
 			
@@ -1166,9 +1181,6 @@ HSS_PRAGMA_WARNING_POP
 
 				noonhour = dayNoon.GetHour(WTIME_FORMAT_AS_LOCAL | WTIME_FORMAT_WITHDST);
 			}
-
-			auto tempValid = validation::conditional_make_object(valid, "WISE.WeatherProto.HourlyWeather", "hourly");
-			auto weatherValid = tempValid.lock();
 
 			//finally, add all of the weather to the stream.
 			for (auto w : weather)
@@ -1734,7 +1746,7 @@ WeatherCondition* WeatherCondition::deserialize(const google::protobuf::Message&
 			HRESULT hr = Import(conditions->filename().c_str(), CWFGM_WEATHERSTREAM_IMPORT_PURGE, myValid2);
 			if (FAILED(hr) || hr == ERROR_INVALID_DATA)
 				throw ISerializeProto::DeserializeError((boost::format("The import weather stream operation has failed. Unable to import \"%1%\"")
-					% conditions->filename()).str());
+					% conditions->filename()).str(), hr);
 		}
 		else if (myValid)
 			/// <summary>

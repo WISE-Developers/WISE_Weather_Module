@@ -102,6 +102,11 @@ CCWFGM_WeatherStream* CCWFGM_WeatherStream::deserialize(const google::protobuf::
 	{
 		m_weatherCondition.deserialize(stream->condition(), v, "condition");
 	}
+	catch (const ISerializeProto::DeserializeError& de)
+	{
+		m_loadWarning = de.what();
+		throw de;
+	}
 	catch (std::exception & e)
 	{
 		m_loadWarning = e.what();
